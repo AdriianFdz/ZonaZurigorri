@@ -1,8 +1,14 @@
 @import "tailwindcss";
+@import "tailwindcss/utilities" layer(utilities);
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
+}
+
+@theme {
+  --color-burdeos-dark: #6B1B29;
+  --color-burdeos-light: #8B2332;
 }
 
 @theme inline {
