@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  redis:
+    image: redis:8.2.3
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"    # puerto estándar de Redis
+    volumes:
+      - redis-data:/data  # persistencia opcional
+
+volumes:
+  redis-data:
