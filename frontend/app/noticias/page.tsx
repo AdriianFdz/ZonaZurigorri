@@ -1,90 +1,237 @@
 "use client";
 
-interface Noticia {
-    author: string;
-    handle: string;
-    time: string;
-    content: string;
+import { useState, useEffect } from "react";
+import Image from "next/image";
+
+interface Article {
+    id: string;
+    title: string;
+    link: string;
+    description: string;
+    published: string;
+    author: string | null;
+    image_url: string | null;
+    image_title: string | null;
+}
+
+interface NewsResponse {
+    total: number;
+    articles: Article[];
+    source: string;
 }
 
 export default function Page() {
-    const mockNoticias: Noticia[] = [
-        {
-            author: "Athletic Club Info",
-            handle: "@AthleticInfo",
-            time: "2h",
-            content:
-                "Iñaki Williams renueva su compromiso con el Athletic hasta 2027. ¡Increíble noticia para la afición!",
-        },
-        {
-            author: "Lezama Noticias",
-            handle: "@LezamaNews",
-            time: "4h",
-            content:
-                "El Bilbao Athletic consigue una importante victoria por 3-1 ante el Unionistas. Destacan las actuaciones de los jóvenes canteranos.",
-        },
-        {
-            author: "Athletic Análisis",
-            handle: "@AthleticData",
-            time: "6h",
-            content:
-                "Análisis táctico: Cómo el Athletic ha mejorado su presión alta esta temporada con un 78% de recuperaciones en campo rival.",
-        },
-        {
-            author: "Zona Zurigorri",
-            handle: "@ZonaZurigorri",
-            time: "8h",
-            content:
-                "Nico Williams brilla en San Mamés con dos asistencias que fueron clave para la victoria ante el rival. La cantera sigue dando frutos.",
-        },
-        {
-            author: "Athletic Club Info",
-            handle: "@AthleticInfo",
-            time: "10h",
-            content:
-                "El Athletic mantiene su filosofía: todos los fichajes del último mercado provienen de la cantera vasca. Único en el mundo.",
-        },
-    ];
+    const [articles, setArticles] = useState<Article[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [currentLimit, setCurrentLimit] = useState(10);
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+    const [hasMore, setHasMore] = useState(true);
+
+    const fetchNews = async (limit: number, append: boolean = false) => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const params = new URLSearchParams({
+                limit: limit.toString(),
+            });
+
+            if (startDate) params.append("start_date", startDate);
+            if (endDate) params.append("end_date", endDate);
+
+            const response = await fetch(
+                `http://localhost:8000/api/v1/news/?${params}`
+            );
+
+            if (!response.ok) {
+                throw new Error("Error al cargar las noticias");
+            }
+
+            const data: NewsResponse = await response.json();
+
+            if (append) {
+                setArticles((prev) => [...prev, ...data.articles]);
+            } else {
+                setArticles(data.articles);
+            }
+
+            // Si recibimos menos artículos de los solicitados, no hay más
+            setHasMore(data.articles.length === limit);
+        } catch (err) {
+            setError(
+                err instanceof Error ? err.message : "Error desconocido"
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchNews(currentLimit);
+    }, [startDate, endDate]);
+
+    const loadMore = () => {
+        const newLimit = currentLimit + 10;
+        setCurrentLimit(newLimit);
+        fetchNews(newLimit, false);
+    };
+
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString("es-ES", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    };
+
+    const resetFilters = () => {
+        setStartDate("");
+        setEndDate("");
+        setCurrentLimit(10);
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 py-12 pt-24">
             <div className="container mx-auto px-4">
-                <div className="max-w-4xl mx-auto">
-                    <div className="bg-white rounded-2xl shadow-xl p-8">
+                <div className="max-w-6xl mx-auto">
+                    <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
                         <h2 className="text-3xl font-bold text-burdeos-dark mb-2">
                             Noticias Athletic
                         </h2>
-                        <p className="text-gray-600 mb-8">
-                            Las últimas novedades del club
+                        <p className="text-gray-600 mb-6">
+                            Las últimas novedades del club desde El Correo
                         </p>
 
-                        <div className="space-y-4">
-                            {mockNoticias.map((noticia, index) => (
-                                <div
-                                    key={index}
-                                    className="p-6 border-2 border-gray-100 rounded-lg hover:bg-gray-50 transition-all hover:border-burdeos-light"
-                                >
-                                    <div className="flex gap-4">
-                                        <div className="w-12 h-12 shrink-0 rounded-full bg-linear-120 from-burdeos-dark via-burdeos-light to-burdeos-dark"></div>
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                                <span className="font-bold text-gray-900">
-                                                    {noticia.author}
-                                                </span>
-                                                <span className="text-gray-500">{noticia.handle}</span>
-                                                <span className="text-gray-400">·</span>
-                                                <span className="text-gray-500">{noticia.time}</span>
-                                            </div>
-                                            <p className="text-gray-800">{noticia.content}</p>
-                                        </div>
-                                    </div>
+                        {/* Filtros */}
+                        <div className="flex flex-wrap gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+                            <div className="flex-1 min-w-[200px]">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Fecha inicio
+                                </label>
+                                <input
+                                    type="date"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    className="w-full px-3 py-2 border-2 border-gray-400 rounded-lg focus:outline-none focus:border-burdeos-light transition-colors placeholder:text-gray-400 text-gray-300"
+                                />
+                            </div>
+                            <div className="flex-1 min-w-[200px]">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Fecha fin
+                                </label>
+                                <input
+                                    type="date"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    className="w-full px-3 py-2 border-2 border-gray-400 rounded-lg focus:outline-none focus:border-burdeos-light transition-colors placeholder:text-gray-400 text-gray-300" />
+                            </div>
+                            {(startDate || endDate) && (
+                                <div className="flex items-end">
+                                    <button
+                                        onClick={resetFilters}
+                                        className="h-[42px] px-4 text-sm font-medium text-burdeos-dark border border-burdeos-light rounded-lg hover:bg-burdeos-light hover:text-white transition-all whitespace-nowrap"
+                                    >
+                                        Limpiar filtros
+                                    </button>
                                 </div>
+                            )}
+                        </div>
+
+                        {/* Error */}
+                        {error && (
+                            <div className="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-lg text-red-700">
+                                {error}
+                            </div>
+                        )}
+
+                        {/* Loading inicial */}
+                        {loading && articles.length === 0 && (
+                            <div className="text-center py-12">
+                                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-burdeos-light border-t-burdeos-dark"></div>
+                                <p className="mt-4 text-gray-600">Cargando noticias...</p>
+                            </div>
+                        )}
+
+                        {/* Noticias */}
+                        {!loading && articles.length === 0 && !error && (
+                            <div className="text-center py-12 text-gray-500">
+                                No se encontraron noticias
+                            </div>
+                        )}
+
+                        <div className="space-y-6">
+                            {articles.map((article) => (
+                                <article
+                                    key={article.id}
+                                    className="border-2 border-gray-100 rounded-lg hover:border-burdeos-light transition-all overflow-hidden"
+                                >
+                                    <a
+                                        href={article.link}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="block hover:bg-gray-50"
+                                    >
+                                        <div className="flex gap-4 p-6">
+                                            {/* Imagen */}
+                                            {article.image_url && (
+                                                <div className="w-48 h-32 shrink-0 relative rounded-lg overflow-hidden">
+                                                    <Image
+                                                        src={article.image_url}
+                                                        alt={article.image_title || article.title}
+                                                        fill
+                                                        className="object-cover"
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {/* Contenido */}
+                                            <div className="flex-1">
+                                                <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2 hover:text-burdeos-dark transition-colors">
+                                                    {article.title}
+                                                </h3>
+                                                <p className="text-gray-600 mb-3 line-clamp-2">
+                                                    {article.description}
+                                                </p>
+                                                <div className="flex items-center gap-3 text-sm text-gray-500">
+                                                    {article.author && (
+                                                        <>
+                                                            <span className="font-medium">
+                                                                {article.author}
+                                                            </span>
+                                                            <span>·</span>
+                                                        </>
+                                                    )}
+                                                    <time>{formatDate(article.published)}</time>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </article>
                             ))}
                         </div>
 
-                        <button className="w-full mt-6 py-3 border-2 border-burdeos-light rounded-lg font-semibold text-burdeos-dark hover:bg-burdeos-light hover:text-white transition-all">
-                            Cargar más noticias
-                        </button>
+                        {/* Botón cargar más */}
+                        {articles.length > 0 && hasMore && (
+                            <button
+                                onClick={loadMore}
+                                disabled={loading}
+                                className="w-full mt-6 py-3 border-2 border-burdeos-light rounded-lg font-semibold text-burdeos-dark hover:bg-burdeos-light hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {loading ? "Cargando..." : "Cargar más noticias"}
+                            </button>
+                        )}
+
+                        {/* Fin de noticias */}
+                        {!hasMore && articles.length > 0 && (
+                            <p className="text-center text-gray-500 mt-6">
+                                No hay más noticias disponibles
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>
