@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     
     app_name: str = "Main Logic Service"
     api_version: str = "v1"
+    host: str = "0.0.0.0"
+    app_port: int = 5000
 
     football_api_key: str = ""
 
