@@ -17,6 +17,13 @@ class Settings(BaseSettings):
 
     baseurl_rss_news: str = "https://www.elcorreo.com/rss/2.0/?section=athletic"
     
+    # Redis Configuration
+    redis_host: str = "localhost"
+    redis_port: int = 6379
+    redis_db: int = 0
+    redis_password: str = ""
+    news_cache_ttl: int = 3600  # 1 hour in seconds
+    
     class Config:
         env_file = ".env"
 

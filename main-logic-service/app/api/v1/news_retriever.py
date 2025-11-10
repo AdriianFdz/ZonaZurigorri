@@ -16,6 +16,8 @@ async def get_latest_news(
 ):
     """
     Recupera las últimas noticias del Athletic Club desde el feed RSS de El Correo.
+    Los datos se obtienen desde caché Redis si están disponibles.
+    Para forzar actualización, usar POST /refresh
     """
     try:
         result = await service.get_latest_news(
@@ -23,6 +25,21 @@ async def get_latest_news(
             start_date=start_date,
             end_date=end_date
         )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/refresh")
+async def refresh_news_cache(
+    service: NewsService = Depends()
+):
+    """
+    Actualiza manualmente la caché de noticias obteniendo los datos más recientes del RSS.
+    Este endpoint también es llamado automáticamente cada hora por el scheduler.
+    """
+    try:
+        result = await service.refresh_all_news_cache()
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,25 +1,39 @@
 from app.core.config import settings
+from app.core.redis_client import redis_client
 from app.schemas.news import NewsResponse, NewsArticle
 import httpx
 import feedparser
 from typing import List, Optional
 from datetime import date, datetime
+import hashlib
 
 
 class NewsService:
     """
-    Servicio para recuperar noticias desde feeds RSS
+    Servicio para recuperar noticias desde feeds RSS con caché Redis
     """
     RSS_URL = settings.baseurl_rss_news
+    CACHE_KEY_PREFIX = "news:"
     
-    async def get_latest_news(
-        self, 
+    def _generate_cache_key(
+        self,
+        limit: int,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None
+    ) -> str:
+        """Genera una clave única para la combinación de parámetros"""
+        params = f"{limit}_{start_date}_{end_date}"
+        hash_suffix = hashlib.md5(params.encode()).hexdigest()[:8]
+        return f"{self.CACHE_KEY_PREFIX}{hash_suffix}"
+    
+    async def _fetch_news_from_rss(
+        self,
         limit: int = 5,
         start_date: Optional[date] = None,
         end_date: Optional[date] = None
     ) -> NewsResponse:
         """
-        Recupera las últimas noticias desde el feed RSS
+        Método interno para obtener noticias directamente del RSS sin usar caché
         
         Args:
             limit: Número máximo de noticias a recuperar
@@ -118,4 +132,80 @@ class NewsService:
             raise Exception(f"Error al recuperar el feed RSS: {str(e)}")
         except Exception as e:
             raise Exception(f"Error al procesar las noticias: {str(e)}")
+    
+    async def get_latest_news(
+        self, 
+        limit: int = 5,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None
+    ) -> NewsResponse:
+        """
+        Recupera las últimas noticias desde el feed RSS con caché
+        
+        Args:
+            limit: Número máximo de noticias a recuperar
+            start_date: Fecha inicial para filtrar (opcional)
+            end_date: Fecha final para filtrar (opcional)
+            
+        Returns:
+            NewsResponse con las noticias recuperadas
+        """
+        # Generar clave de caché
+        cache_key = self._generate_cache_key(limit, start_date, end_date)
+        
+        # Intentar obtener desde caché
+        if redis_client.is_connected:
+            cached_data = redis_client.get(cache_key)
+            if cached_data:
+                print(f"[CACHE HIT] {cache_key}")
+                return NewsResponse(**cached_data)
+            print(f"[CACHE MISS] {cache_key}")
+        
+        # Obtener datos frescos del RSS
+        response_data = await self._fetch_news_from_rss(limit, start_date, end_date)
+        
+        # Guardar en caché
+        if redis_client.is_connected:
+            redis_client.set(
+                cache_key,
+                response_data.model_dump(),
+                ttl=settings.news_cache_ttl
+            )
+            print(f"[CACHE SAVED] {cache_key}")
+        
+        return response_data
+    
+    async def refresh_all_news_cache(self) -> dict:
+        """
+        Refresca la caché de noticias con los datos más recientes del RSS.
+        Obtiene hasta 100 noticias y las guarda en caché.
+        
+        Returns:
+            dict con el estado de la operación
+        """
+        try:
+            # Obtener noticias frescas directamente del RSS
+            news_response = await self._fetch_news_from_rss(limit=100)
+            
+            # Guardar en caché
+            cache_key = self._generate_cache_key(limit=100)
+            if redis_client.is_connected:
+                redis_client.set(
+                    cache_key,
+                    news_response.model_dump(),
+                    ttl=settings.news_cache_ttl
+                )
+                print(f"[CACHE REFRESHED] {cache_key}")
+            
+            return {
+                "status": "success",
+                "message": f"Caché actualizada con {news_response.total} noticias",
+                "total_articles": news_response.total,
+                "cache_ttl": settings.news_cache_ttl
+            }
+        except Exception as e:
+            return {
+                "status": "error",
+                "message": f"Error al actualizar caché: {str(e)}"
+            }
         

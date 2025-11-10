@@ -2,10 +2,40 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.v1.router import api_router
+from app.core.redis_client import redis_client
+from app.core.scheduler import task_scheduler
+from contextlib import asynccontextmanager
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Gestiona el ciclo de vida de la aplicación"""
+    # Startup
+    print("Iniciando aplicación...")
+    
+    # Conectar a Redis
+    redis_client.connect()
+    
+    # Iniciar scheduler para tareas programadas
+    task_scheduler.start()
+    
+    # Hacer primera carga de caché
+    if redis_client.is_connected:
+        print("Realizando carga inicial de caché de noticias...")
+        await task_scheduler.refresh_news_cache_job()
+    
+    yield
+    
+    # Shutdown
+    print("Cerrando aplicación...")
+    task_scheduler.shutdown()
+    redis_client.disconnect()
+
 
 app = FastAPI(
     title=settings.app_name,
-    version=settings.api_version
+    version=settings.api_version,
+    lifespan=lifespan
 )
 
 # CORS middleware
@@ -29,14 +59,18 @@ async def root():
         "endpoints": [
             "/api/v1/philosophy/validate",
             "/api/v1/talent/predict",
-            "/api/v1/news/latest"
+            "/api/v1/news/"
         ]
     }
 
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy"}
+    redis_status = "connected" if redis_client.is_connected else "disconnected"
+    return {
+        "status": "healthy",
+        "redis": redis_status
+    }
 
 
 if __name__ == "__main__":
