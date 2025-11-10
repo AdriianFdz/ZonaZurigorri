@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, MapPin, Shield } from "lucide-react";
+import { Search, MapPin, Shield, Heart } from "lucide-react";
 
 interface Promesa {
     name: string;
@@ -115,13 +115,21 @@ export default function Page() {
                                 </div>
 
                                 <div className="p-6">
-                                    <div className="mb-4">
-                                        <h3 className="text-2xl font-bold text-gray-900 mb-1">
-                                            {promesa.fullName}
-                                        </h3>
-                                        <p className="text-gray-600">
-                                            {promesa.position} • {promesa.age} años
-                                        </p>
+                                    <div className="mb-4 flex items-start justify-between">
+                                        <div className="flex-1">
+                                            <h3 className="text-2xl font-bold text-gray-900 mb-1">
+                                                {promesa.fullName}
+                                            </h3>
+                                            <p className="text-gray-600">
+                                                {promesa.position} • {promesa.age} años
+                                            </p>
+                                        </div>
+                                        <button
+                                            className="text-gray-400 hover:text-red-600 transition-colors cursor-pointer"
+                                            aria-label="Agregar a favoritos"
+                                        >
+                                            <Heart size={24} />
+                                        </button>
                                     </div>
 
                                     <div className="space-y-2 mb-4">
