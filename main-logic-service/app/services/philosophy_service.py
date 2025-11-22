@@ -479,184 +479,190 @@ class PhilosophyService:
         Returns:
             PhilosophyValidationResponse con el resultado de la validación
         """
-        # Configurar cliente HTTP con timeout más largo (solo para OSM)
-        timeout = httpx.Timeout(30.0, connect=10.0)
-        async with httpx.AsyncClient(timeout=timeout) as http_client:
-            # Obtener información del jugador desde Wikidata usando el cliente wikidata
-            entity = await self._get_wikidata_entity(player_id)
-            
-            # Extraer datos del jugador
-            player_name = await self._get_entity_label(entity)
-            birth_date = await self._extract_birth_date(entity)
-            birth_place_entity = await self._extract_birth_place(entity)
-            
-            # Extraer imagen (P18)
-            entity_dict = await asyncio.get_event_loop().run_in_executor(None, lambda: entity.data)
-            claims = entity_dict.get('claims', {})
-            image_url = None
-            if claims.get("P18"):
-                try:
-                    image_filename = claims["P18"][0]["mainsnak"]["datavalue"]["value"]
-                    import hashlib
-                    image_filename_normalized = image_filename.replace(" ", "_")
-                    md5_hash = hashlib.md5(image_filename_normalized.encode('utf-8')).hexdigest()
-                    image_url = f"https://upload.wikimedia.org/wikipedia/commons/thumb/{md5_hash[0]}/{md5_hash[0:2]}/{image_filename_normalized}/300px-{image_filename_normalized}"
-                except:
-                    pass
-            
-            # Obtener nombre del lugar de nacimiento
-            place_name = "Desconocido"
-            if birth_place_entity:
-                place_name = await self._get_entity_label(birth_place_entity)
-            
-            # Extraer coordenadas del lugar de nacimiento
-            coordinates = None
-            if birth_place_entity:
-                coordinates = await self._extract_coordinates(birth_place_entity)
-            
-            status = "invalid"  # Por defecto: no cumple
-            validation_reason = "No se pudo validar"
-            territory = None
-            
-            if coordinates:
-                lat, lon = coordinates
-                # Obtener información detallada desde OpenStreetMap
-                try:
-                    osm_data = await self._get_location_details_from_osm(http_client, lat, lon)
-                    
-                    # Obtener el estado/provincia de la respuesta
-                    address = osm_data.get('address', {})
-                    
-                    # Buscar el campo más específico disponible (en orden de prioridad)
-                    # subdivision: usado en Francia (Lapurdi, etc.)
-                    # province: usado en España (Bizkaia, Gipuzkoa, etc.)
-                    # county: condado, puede ser Pyrénées-Atlantiques
-                    # state: estado/región (muy general, último recurso)
-                    subdivision = address.get('subdivision', '')
-                    province = address.get('province', '')
-                    county = address.get('county', '')
-                    state = address.get('state', '')
-                    
-                    # Usar el primer campo disponible (más específico primero)
-                    location_to_check = subdivision or province or county or state
-                    
-                    # Debug: imprimir lo que devuelve OSM
-                    print(f"DEBUG - OSM Address: {address}")
-                    print(f"DEBUG - Subdivision: '{subdivision}', Province: '{province}', County: '{county}', State: '{state}'")
-                    print(f"DEBUG - Usando para validación: '{location_to_check}'")
-                    
-                    # Validar si el territorio cumple la filosofía
-                    is_birth_valid, territory = self._validate_territory(location_to_check)
-                    
-                    print(f"DEBUG - Validación: is_birth_valid={is_birth_valid}, territory={territory}")
-                    
-                    if is_birth_valid:
-                        status = "valid"
-                        validation_reason = f"Nacido en {territory} ({location_to_check})"
-                    else:
-                        validation_reason = f"Nacido en '{location_to_check}', fuera de los territorios válidos del Athletic"
+        try:
+            # Configurar cliente HTTP con timeout más largo (solo para OSM)
+            timeout = httpx.Timeout(30.0, connect=10.0)
+            async with httpx.AsyncClient(timeout=timeout) as http_client:
+                # Obtener información del jugador desde Wikidata usando el cliente wikidata
+                entity = await self._get_wikidata_entity(player_id)
+                
+                # Extraer datos del jugador
+                player_name = await self._get_entity_label(entity)
+                birth_date = await self._extract_birth_date(entity)
+                birth_place_entity = await self._extract_birth_place(entity)
+                
+                # Extraer imagen (P18)
+                entity_dict = await asyncio.get_event_loop().run_in_executor(None, lambda: entity.data)
+                claims = entity_dict.get('claims', {})
+                image_url = None
+                if claims.get("P18"):
+                    try:
+                        image_filename = claims["P18"][0]["mainsnak"]["datavalue"]["value"]
+                        import hashlib
+                        image_filename_normalized = image_filename.replace(" ", "_")
+                        md5_hash = hashlib.md5(image_filename_normalized.encode('utf-8')).hexdigest()
+                        image_url = f"https://upload.wikimedia.org/wikipedia/commons/thumb/{md5_hash[0]}/{md5_hash[0:2]}/{image_filename_normalized}/300px-{image_filename_normalized}"
+                    except:
+                        pass
+                
+                # Obtener nombre del lugar de nacimiento
+                place_name = "Desconocido"
+                if birth_place_entity:
+                    place_name = await self._get_entity_label(birth_place_entity)
+                
+                # Extraer coordenadas del lugar de nacimiento
+                coordinates = None
+                if birth_place_entity:
+                    coordinates = await self._extract_coordinates(birth_place_entity)
+                
+                status = "invalid"  # Por defecto: no cumple
+                validation_reason = "No se pudo validar"
+                territory = None
+                
+                if coordinates:
+                    lat, lon = coordinates
+                    # Obtener información detallada desde OpenStreetMap
+                    try:
+                        osm_data = await self._get_location_details_from_osm(http_client, lat, lon)
                         
-                except Exception as e:
-                    validation_reason = f"Error al consultar OpenStreetMap: {str(e)}"
-            else:
-                validation_reason = "No se encontraron coordenadas para validar el lugar de nacimiento"
-            
-            # Extraer clubes del jugador (siempre, para incluirlos en la respuesta)
-            print(f"DEBUG - Extrayendo clubes del jugador...")
-            teams = await self._extract_teams(entity)
-            print(f"DEBUG - Clubes encontrados: {len(teams)}")
-            
-            # Si no cumple por nacimiento, verificar formación en club vasco
-            if status != "valid":
-                print(f"DEBUG - Jugador no nació en territorio válido, verificando clubes...")
+                        # Obtener el estado/provincia de la respuesta
+                        address = osm_data.get('address', {})
+                        
+                        # Buscar el campo más específico disponible (en orden de prioridad)
+                        # subdivision: usado en Francia (Lapurdi, etc.)
+                        # province: usado en España (Bizkaia, Gipuzkoa, etc.)
+                        # county: condado, puede ser Pyrénées-Atlantiques
+                        # state: estado/región (muy general, último recurso)
+                        subdivision = address.get('subdivision', '')
+                        province = address.get('province', '')
+                        county = address.get('county', '')
+                        state = address.get('state', '')
+                        
+                        # Usar el primer campo disponible (más específico primero)
+                        location_to_check = subdivision or province or county or state
+                        
+                        # Debug: imprimir lo que devuelve OSM
+                        print(f"DEBUG - OSM Address: {address}")
+                        print(f"DEBUG - Subdivision: '{subdivision}', Province: '{province}', County: '{county}', State: '{state}'")
+                        print(f"DEBUG - Usando para validación: '{location_to_check}'")
+                        
+                        # Validar si el territorio cumple la filosofía
+                        is_birth_valid, territory = self._validate_territory(location_to_check)
+                        
+                        print(f"DEBUG - Validación: is_birth_valid={is_birth_valid}, territory={territory}")
+                        
+                        if is_birth_valid:
+                            status = "valid"
+                            validation_reason = f"Nacido en {territory} ({location_to_check})"
+                        else:
+                            validation_reason = f"Nacido en '{location_to_check}', fuera de los territorios válidos del Athletic"
+                            
+                    except Exception as e:
+                        validation_reason = f"Error al consultar OpenStreetMap: {str(e)}"
+                else:
+                    validation_reason = "No se encontraron coordenadas para validar el lugar de nacimiento"
                 
-                # Verificar si hay clubes antes de los 18 años
-                has_youth_clubs = False
-                doubt_clubs = []  # Clubes con edad 17 (dudosos)
+                # Extraer clubes del jugador (siempre, para incluirlos en la respuesta)
+                print(f"DEBUG - Extrayendo clubes del jugador...")
+                teams = await self._extract_teams(entity)
+                print(f"DEBUG - Clubes encontrados: {len(teams)}")
                 
-                # Verificar cada club
-                for team_info in teams:
-                    club_id = team_info['id']
-                    start_date = team_info['start_date']
-                    
-                    print(f"DEBUG - Verificando club {club_id}, inicio: {start_date}")
-                    
-                    # Si no hay fecha de inicio, no podemos validar la edad
-                    if not start_date or birth_date == "Desconocido":
-                        continue
-                    
-                    # Calcular edad cuando entró al club
-                    age_at_start = self._calculate_age_at_date(birth_date, start_date)
-                    
-                    print(f"DEBUG - Edad al entrar al club: {age_at_start}")
-                    
-                    if age_at_start is None:
-                        continue
-                    
-                    # Registrar que hay clubes antes de los 18
-                    if age_at_start < 18:
-                        has_youth_clubs = True
-                    
-                    # Verificar si el club está en territorio válido
-                    club_is_valid, club_territory, club_name = await self._check_club_location(http_client, club_id)
-                    
-                    print(f"DEBUG - Club: {club_name}, en territorio válido: {club_is_valid}, territorio: {club_territory}, edad: {age_at_start}")
-                    
-                    # Si llegó con 16 años o menos, es válido
-                    if age_at_start <= 16 and club_is_valid:
-                        status = "valid"
-                        territory = club_territory
-                        validation_reason = f"Formación en club vasco: llegó a {club_name} ({club_territory}) con {age_at_start} años"
-                        break
-                    
-                    # Si llegó con 17 años y es fecha parcial, es duda (pudo entrar con 16)
-                    elif age_at_start == 17 and club_is_valid:
-                        if start_date.endswith('-00-00') or start_date.endswith('-00'):
-                            doubt_clubs.append({
-                                'name': club_name,
-                                'territory': club_territory,
-                                'age': age_at_start
-                            })
-                
-                # Si no cumple definitivamente, revisar si hay dudas
+                # Si no cumple por nacimiento, verificar formación en club vasco
                 if status != "valid":
-                    # Caso 1: Clubes con 17 años en territorio vasco (pudo entrar con 16)
-                    if doubt_clubs:
-                        status = "doubt"
-                        club_info = doubt_clubs[0]
-                        validation_reason = f"Duda: llegó a {club_info['name']} ({club_info['territory']}) con aproximadamente {club_info['age']} años. Pudo haber entrado con 16 años pero falta información precisa (solo año disponible)"
+                    print(f"DEBUG - Jugador no nació en territorio válido, verificando clubes...")
                     
-                    # Caso 2: No hay clubes registrados antes de los 18 años
-                    elif not has_youth_clubs:
-                        status = "doubt"
-                        validation_reason = "Duda: no hay clubes registrados antes de los 18 años. Falta información sobre clubes de formación (cadete, juvenil, etc.)"
+                    # Verificar si hay clubes antes de los 18 años
+                    has_youth_clubs = False
+                    doubt_clubs = []  # Clubes con edad 17 (dudosos)
                     
-                    # Caso 3: No cumple definitivamente
-                    else:
-                        status = "invalid"
-                        if not validation_reason or validation_reason == "No se pudo validar":
-                            validation_reason = "No cumple la filosofía: no nació en territorio válido ni se formó en club vasco antes de los 16 años"
+                    # Verificar cada club
+                    for team_info in teams:
+                        club_id = team_info['id']
+                        start_date = team_info['start_date']
+                        
+                        print(f"DEBUG - Verificando club {club_id}, inicio: {start_date}")
+                        
+                        # Si no hay fecha de inicio, no podemos validar la edad
+                        if not start_date or birth_date == "Desconocido":
+                            continue
+                        
+                        # Calcular edad cuando entró al club
+                        age_at_start = self._calculate_age_at_date(birth_date, start_date)
+                        
+                        print(f"DEBUG - Edad al entrar al club: {age_at_start}")
+                        
+                        if age_at_start is None:
+                            continue
+                        
+                        # Registrar que hay clubes antes de los 18
+                        if age_at_start < 18:
+                            has_youth_clubs = True
+                        
+                        # Verificar si el club está en territorio válido
+                        club_is_valid, club_territory, club_name = await self._check_club_location(http_client, club_id)
+                        
+                        print(f"DEBUG - Club: {club_name}, en territorio válido: {club_is_valid}, territorio: {club_territory}, edad: {age_at_start}")
+                        
+                        # Si llegó con 16 años o menos, es válido
+                        if age_at_start <= 16 and club_is_valid:
+                            status = "valid"
+                            territory = club_territory
+                            validation_reason = f"Formación en club vasco: llegó a {club_name} ({club_territory}) con {age_at_start} años"
+                            break
+                        
+                        # Si llegó con 17 años y es fecha parcial, es duda (pudo entrar con 16)
+                        elif age_at_start == 17 and club_is_valid:
+                            if start_date.endswith('-00-00') or start_date.endswith('-00'):
+                                doubt_clubs.append({
+                                    'name': club_name,
+                                    'territory': club_territory,
+                                    'age': age_at_start
+                                })
+                    
+                    # Si no cumple definitivamente, revisar si hay dudas
+                    if status != "valid":
+                        # Caso 1: Clubes con 17 años en territorio vasco (pudo entrar con 16)
+                        if doubt_clubs:
+                            status = "doubt"
+                            club_info = doubt_clubs[0]
+                            validation_reason = f"Duda: llegó a {club_info['name']} ({club_info['territory']}) con aproximadamente {club_info['age']} años. Pudo haber entrado con 16 años pero falta información precisa (solo año disponible)"
+                        
+                        # Caso 2: No hay clubes registrados antes de los 18 años
+                        elif not has_youth_clubs:
+                            status = "doubt"
+                            validation_reason = "Duda: no hay clubes registrados antes de los 18 años. Falta información sobre clubes de formación (cadete, juvenil, etc.)"
+                        
+                        # Caso 3: No cumple definitivamente
+                        else:
+                            status = "invalid"
+                            if not validation_reason or validation_reason == "No se pudo validar":
+                                validation_reason = "No cumple la filosofía: no nació en territorio válido ni se formó en club vasco antes de los 16 años"
 
-            # Calcular clubes y temporadas
-            print(f"DEBUG - Calculando clubes y temporadas...")
-            clubs_seasons = await self._calculate_clubs_seasons(teams)
-            print(f"DEBUG - Clubes procesados: {len(clubs_seasons)} clubes únicos")
-            
-            # Crear objeto Player
-            player = Player(
-                name=player_name,
-                clubs=clubs_seasons,
-                born_place=place_name,
-                birth_date=birth_date,
-                position="Desconocido",
-                image_url=image_url
-            )
-            
-            return PhilosophyValidationResponse(
-                jugador=player,
-                status=status,
-                reason=validation_reason
-            )
+                # Calcular clubes y temporadas
+                print(f"DEBUG - Calculando clubes y temporadas...")
+                clubs_seasons = await self._calculate_clubs_seasons(teams)
+                print(f"DEBUG - Clubes procesados: {len(clubs_seasons)} clubes únicos")
+                
+                # Crear objeto Player
+                player = Player(
+                    name=player_name,
+                    clubs=clubs_seasons,
+                    born_place=place_name,
+                    birth_date=birth_date,
+                    position="Desconocido",
+                    image_url=image_url if image_url else None
+                )
+                
+                return PhilosophyValidationResponse(
+                    jugador=player,
+                    status=status,
+                    reason=validation_reason
+                )
+        except Exception as e:
+            import traceback
+            print(f"ERROR - Error en validate_philosophy_by_id para player {player_id}: {type(e).__name__}: {str(e)}")
+            print(f"Traceback: {traceback.format_exc()}")
+            raise
     
     async def validate_philosophy(
         self, 

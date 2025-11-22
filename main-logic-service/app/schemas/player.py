@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 from app.schemas.club_dto import ClubDTO
 
 
@@ -15,4 +15,4 @@ class Player(BaseModel):
     born_place: str
     birth_date: str
     position: str
-    image_url: str = Field(default=None, description="Image URL from Wikidata (P18)")
+    image_url: Optional[str] = Field(default=None, description="Image URL from Wikidata (P18)")
