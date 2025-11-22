@@ -320,8 +320,23 @@ class PhilosophyService:
             # Obtener coordenadas del club (P625)
             coordinates = await self._extract_coordinates(club_entity)
             
+            # Si no tiene coordenadas directas, intentar obtener de la sede (P159)
             if not coordinates:
-                print(f"DEBUG - Club {club_id} ({club_name}) no tiene coordenadas")
+                print(f"DEBUG - Club {club_id} ({club_name}) no tiene coordenadas directas, intentando obtener de sede (P159)")
+                loop = asyncio.get_event_loop()
+                try:
+                    # P159 = headquarters location
+                    headquarters = await loop.run_in_executor(None, lambda: club_entity.get(self.wikidata_client.get('P159')))
+                    if headquarters:
+                        # Obtener coordenadas de la sede
+                        coordinates = await self._extract_coordinates(headquarters)
+                        if coordinates:
+                            print(f"DEBUG - Coordenadas obtenidas desde sede: {coordinates}")
+                except Exception as e:
+                    print(f"DEBUG - Error obteniendo sede: {str(e)}")
+            
+            if not coordinates:
+                print(f"DEBUG - Club {club_id} ({club_name}) no tiene coordenadas ni en P625 ni en P159")
                 return (False, None, club_name)
             
             lat, lon = coordinates
@@ -582,30 +597,26 @@ class PhilosophyService:
                     if age_at_start < 18:
                         has_youth_clubs = True
                     
-                    # Si llegó con 16 años o menos, es válido
-                    if age_at_start <= 16:
-                        # Verificar si el club está en territorio válido
-                        club_is_valid, club_territory, club_name = await self._check_club_location(http_client, club_id)
-                        
-                        print(f"DEBUG - Club en territorio válido: {club_is_valid}, territorio: {club_territory}")
-                        
-                        if club_is_valid:
-                            status = "valid"
-                            territory = club_territory
-                            validation_reason = f"Formación en club vasco: llegó a {club_name} ({club_territory}) con {age_at_start} años"
-                            break
+                    # Verificar si el club está en territorio válido
+                    club_is_valid, club_territory, club_name = await self._check_club_location(http_client, club_id)
                     
-                    # Si llegó con 17 años (edad aproximada por fecha parcial), es duda
-                    elif age_at_start == 17:
-                        # Verificar si es fecha parcial
+                    print(f"DEBUG - Club: {club_name}, en territorio válido: {club_is_valid}, territorio: {club_territory}, edad: {age_at_start}")
+                    
+                    # Si llegó con 16 años o menos, es válido
+                    if age_at_start <= 16 and club_is_valid:
+                        status = "valid"
+                        territory = club_territory
+                        validation_reason = f"Formación en club vasco: llegó a {club_name} ({club_territory}) con {age_at_start} años"
+                        break
+                    
+                    # Si llegó con 17 años y es fecha parcial, es duda (pudo entrar con 16)
+                    elif age_at_start == 17 and club_is_valid:
                         if start_date.endswith('-00-00') or start_date.endswith('-00'):
-                            club_is_valid, club_territory, club_name = await self._check_club_location(http_client, club_id)
-                            if club_is_valid:
-                                doubt_clubs.append({
-                                    'name': club_name,
-                                    'territory': club_territory,
-                                    'age': age_at_start
-                                })
+                            doubt_clubs.append({
+                                'name': club_name,
+                                'territory': club_territory,
+                                'age': age_at_start
+                            })
                 
                 # Si no cumple definitivamente, revisar si hay dudas
                 if status != "valid":
