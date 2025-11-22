@@ -9,8 +9,6 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     app_port: int = 5000
 
-    football_api_key: str = ""
-
     baseurl_openstreetmap: str = "https://nominatim.openstreetmap.org/reverse"
 
     baseurl_wikidata: str = "https://www.wikidata.org/w/api.php"
