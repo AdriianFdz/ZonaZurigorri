@@ -5,7 +5,6 @@ from app.schemas.player import Player
 
 class PhilosophyValidationRequest(BaseModel):
     """Request schema for philosophy validation"""
-    player_football_api_id: Optional[str] = None
     player_wikidata_id: Optional[str] = None
     
 

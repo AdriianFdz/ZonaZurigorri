@@ -1,4 +1,5 @@
 from app.schemas.philosophy import PhilosophyValidationRequest, PhilosophyValidationResponse
+from app.schemas.player_search import PlayerSearchResult, PlayerSearchResponse
 from app.core.config import settings
 import httpx
 from app.schemas.player import Player, ClubSeasons
@@ -7,6 +8,9 @@ from typing import Dict, Any, Optional, List
 import asyncio
 from functools import partial
 from wikidata.client import Client
+from datetime import datetime
+import math
+from urllib.parse import quote
 
 
 class PhilosophyService:
@@ -447,23 +451,43 @@ class PhilosophyService:
                 print(f"DEBUG - Error en OSM: {type(e).__name__}: {str(e)}")
                 raise
     
-    async def validate_philosophy(
+    async def validate_philosophy_by_id(
         self, 
-        request: PhilosophyValidationRequest
+        player_id: str
     ) -> PhilosophyValidationResponse:
         """
-        Valida si un jugador cumple con la filosofía del club
+        Valida si un jugador cumple con la filosofía del club usando solo su ID de Wikidata
+        
+        Args:
+            player_id: ID de Wikidata del jugador (ej: Q12345)
+            
+        Returns:
+            PhilosophyValidationResponse con el resultado de la validación
         """
         # Configurar cliente HTTP con timeout más largo (solo para OSM)
         timeout = httpx.Timeout(30.0, connect=10.0)
         async with httpx.AsyncClient(timeout=timeout) as http_client:
             # Obtener información del jugador desde Wikidata usando el cliente wikidata
-            entity = await self._get_wikidata_entity(request.player_wikidata_id)
+            entity = await self._get_wikidata_entity(player_id)
             
             # Extraer datos del jugador
             player_name = await self._get_entity_label(entity)
             birth_date = await self._extract_birth_date(entity)
             birth_place_entity = await self._extract_birth_place(entity)
+            
+            # Extraer imagen (P18)
+            entity_dict = await asyncio.get_event_loop().run_in_executor(None, lambda: entity.data)
+            claims = entity_dict.get('claims', {})
+            image_url = None
+            if claims.get("P18"):
+                try:
+                    image_filename = claims["P18"][0]["mainsnak"]["datavalue"]["value"]
+                    import hashlib
+                    image_filename_normalized = image_filename.replace(" ", "_")
+                    md5_hash = hashlib.md5(image_filename_normalized.encode('utf-8')).hexdigest()
+                    image_url = f"https://upload.wikimedia.org/wikipedia/commons/thumb/{md5_hash[0]}/{md5_hash[0:2]}/{image_filename_normalized}/300px-{image_filename_normalized}"
+                except:
+                    pass
             
             # Obtener nombre del lugar de nacimiento
             place_name = "Desconocido"
@@ -613,7 +637,8 @@ class PhilosophyService:
                 clubs=clubs_seasons,
                 born_place=place_name,
                 birth_date=birth_date,
-                position="Desconocido"
+                position="Desconocido",
+                image_url=image_url
             )
             
             return PhilosophyValidationResponse(
@@ -621,3 +646,170 @@ class PhilosophyService:
                 status=status,
                 reason=validation_reason
             )
+    
+    async def validate_philosophy(
+        self, 
+        request: PhilosophyValidationRequest
+    ) -> PhilosophyValidationResponse:
+        """
+        Valida si un jugador cumple con la filosofía del club (método legacy con request)
+        """
+        return await self.validate_philosophy_by_id(request.player_wikidata_id)
+    
+    async def search_players_for_autocomplete(
+        self,
+        player_name: str
+    ) -> PlayerSearchResponse:
+        """
+        Busca jugadores por nombre para autocompletado (máximo 10 resultados)
+        
+        Args:
+            player_name: Nombre del jugador a buscar
+            
+        Returns:
+            PlayerSearchResponse con hasta 10 resultados
+        """
+        loop = asyncio.get_event_loop()
+        
+        def search_wikidata():
+            encoded_name = quote(player_name)
+            path = f"w/api.php?action=wbsearchentities&search={encoded_name}&language=es&limit=50&format=json&type=item"
+            return self.wikidata_client.request(path)
+        
+        try:
+            search_data = await loop.run_in_executor(None, search_wikidata)
+            search_results = search_data.get("search", [])
+        except:
+            search_results = []
+        
+        # Procesar resultados y filtrar futbolistas
+        async def process_player(result):
+            try:
+                player_id = result["id"]
+                entity = await self._get_wikidata_entity(player_id)
+                entity_dict = await loop.run_in_executor(None, lambda: entity.data)
+                
+                # Verificar P106 = Q937857
+                claims = entity_dict.get("claims", {})
+                occupations = claims.get("P106", [])
+                
+                is_footballer = any(
+                    occ.get("mainsnak", {}).get("datavalue", {}).get("value", {}).get("id") == "Q937857"
+                    for occ in occupations
+                )
+                
+                if not is_footballer:
+                    return None
+                
+                # Extraer datos
+                full_name = await self._get_entity_label(entity)
+                given_name = ""
+                family_name = ""
+                
+                # Nombre
+                if claims.get("P735"):
+                    try:
+                        given_id = claims["P735"][0]["mainsnak"]["datavalue"]["value"]["id"]
+                        given_entity = await self._get_wikidata_entity(given_id)
+                        given_name = await self._get_entity_label(given_entity)
+                    except:
+                        pass
+                
+                # Apellido
+                if claims.get("P734"):
+                    try:
+                        family_id = claims["P734"][0]["mainsnak"]["datavalue"]["value"]["id"]
+                        family_entity = await self._get_wikidata_entity(family_id)
+                        family_name = await self._get_entity_label(family_entity)
+                    except:
+                        pass
+                
+                if not given_name and not family_name:
+                    parts = full_name.split()
+                    given_name = parts[0] if parts else ""
+                    family_name = " ".join(parts[1:]) if len(parts) > 1 else ""
+                
+                # Fecha nacimiento
+                birth_date_str = await self._extract_birth_date(entity)
+                age = None
+                if birth_date_str and birth_date_str != "Desconocido":
+                    try:
+                        birth_date = datetime.strptime(birth_date_str, "%Y-%m-%d")
+                        age = (datetime.now() - birth_date).days // 365
+                    except:
+                        pass
+                
+                # Club actual
+                current_club = await self._get_current_club(player_id)
+                
+                # Imagen (P18)
+                image_url = None
+                if claims.get("P18"):
+                    try:
+                        image_filename = claims["P18"][0]["mainsnak"]["datavalue"]["value"]
+                        # Convertir a URL de Wikimedia Commons
+                        import hashlib
+                        image_filename_normalized = image_filename.replace(" ", "_")
+                        md5_hash = hashlib.md5(image_filename_normalized.encode('utf-8')).hexdigest()
+                        image_url = f"https://upload.wikimedia.org/wikipedia/commons/thumb/{md5_hash[0]}/{md5_hash[0:2]}/{image_filename_normalized}/150px-{image_filename_normalized}"
+                    except:
+                        pass
+                
+                return PlayerSearchResult(
+                    id=player_id,
+                    name=given_name or "Desconocido",
+                    surname=family_name or "",
+                    full_name=full_name,
+                    current_club=current_club,
+                    age=age,
+                    birth_date=birth_date_str if birth_date_str != "Desconocido" else None,
+                    image_url=image_url
+                )
+            except Exception as e:
+                return None
+        
+        # Procesar en paralelo (solo primeros resultados)
+        tasks = [process_player(r) for r in search_results[:25]]  # Procesar máximo 25 para obtener 10 válidos
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Filtrar solo futbolistas válidos y limitar a 10
+        all_results = [r for r in results if r is not None and not isinstance(r, Exception)][:10]
+        
+        return PlayerSearchResponse(
+            results=all_results
+        )
+    
+    async def _get_current_club(self, player_id: str) -> Optional[str]:
+        """
+        Obtiene el club actual del jugador (el más reciente sin fecha de fin)
+        
+        Args:
+            player_id: ID del jugador en Wikidata
+            
+        Returns:
+            Nombre del club actual o None
+        """
+        try:
+            entity = await self._get_wikidata_entity(player_id)
+            entity_dict = await asyncio.get_event_loop().run_in_executor(None, lambda: entity.data)
+            claims = entity_dict.get('claims', {})
+            team_claims = claims.get('P54', [])
+            
+            # Buscar el club sin fecha de fin (actual)
+            for claim in team_claims:
+                qualifiers = claim.get('qualifiers', {})
+                end_date = qualifiers.get('P582', None)
+                
+                # Si no tiene fecha de fin, es el club actual
+                if not end_date:
+                    try:
+                        club_id = claim['mainsnak']['datavalue']['value']['id']
+                        club_entity = await self._get_wikidata_entity(club_id)
+                        club_name = await self._get_entity_label(club_entity)
+                        return club_name
+                    except:
+                        continue
+            
+            return None
+        except:
+            return None

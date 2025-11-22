@@ -15,3 +15,4 @@ class Player(BaseModel):
     born_place: str
     birth_date: str
     position: str
+    image_url: str = Field(default=None, description="Image URL from Wikidata (P18)")

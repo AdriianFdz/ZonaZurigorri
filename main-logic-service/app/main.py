@@ -50,20 +50,6 @@ app.add_middleware(
 # Include API routes
 app.include_router(api_router, prefix=f"/api/{settings.api_version}")
 
-
-@app.get("/")
-async def root():
-    return {
-        "message": "Main Logic Service API",
-        "version": settings.api_version,
-        "endpoints": [
-            "/api/v1/philosophy/validate",
-            "/api/v1/talent/predict",
-            "/api/v1/news/"
-        ]
-    }
-
-
 @app.get("/health")
 async def health_check():
     redis_status = "connected" if redis_client.is_connected else "disconnected"
