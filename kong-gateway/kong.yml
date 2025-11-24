@@ -7,7 +7,7 @@ services:
     routes:
       - name: microservicio-logica-principal-route
         paths:
-          - /docs
+          - /api/docs
           - /openapi.json
           - /api/v1
         strip_path: false

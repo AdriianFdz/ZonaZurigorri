@@ -7,7 +7,7 @@ import { User } from '../entities/user.entity';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { GoogleStrategy } from './strategies/google.strategy';
-import { TwitterStrategy } from './strategies/twitter.strategy';
+import { DiscordStrategy } from './strategies/discord.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
@@ -24,7 +24,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
         }),
     ],
     controllers: [AuthController],
-    providers: [AuthService, GoogleStrategy, TwitterStrategy, JwtStrategy],
+    providers: [AuthService, GoogleStrategy, DiscordStrategy, JwtStrategy],
     exports: [AuthService],
 })
 export class AuthModule { }

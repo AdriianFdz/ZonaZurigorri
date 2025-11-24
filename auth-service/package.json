@@ -30,6 +30,7 @@
     "@nestjs/typeorm": "^11.0.0",
     "next-auth": "^4.24.13",
     "passport": "^0.7.0",
+    "passport-discord-auth": "^1.2.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
     "passport-twitter": "^1.0.4",

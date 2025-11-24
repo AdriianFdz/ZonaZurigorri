@@ -20,10 +20,10 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('api/auth/docs', app, document);
 
   await app.listen(process.env.PORT ?? 5001);
   console.log(`Aplicación corriendo en: http://localhost:${process.env.PORT ?? 5001}`);
-  console.log(`Swagger UI disponible en: http://localhost:${process.env.PORT ?? 5001}/api`);
+  console.log(`Swagger UI disponible en: http://localhost:8000/api/auth/docs`);
 }
 void bootstrap();

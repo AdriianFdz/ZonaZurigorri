@@ -39,7 +39,24 @@ export class AuthController {
         const { token } = await this.authService.validateOAuthLogin(req.user);
         // Redirigir al frontend con el token
         res.redirect(`http://localhost:3000/auth/callback?token=${token}`);
-    } @Get('profile')
+    }
+
+    @Get('discord')
+    @ApiOperation({ summary: 'Iniciar login con Discord' })
+    @UseGuards(AuthGuard('discord'))
+    async discordAuth() {
+        // Guard redirects
+    }
+
+    @Get('discord/callback')
+    @UseGuards(AuthGuard('discord'))
+    async discordAuthRedirect(@Req() req: any, @Res() res: Response) {
+        const { token } = await this.authService.validateOAuthLogin(req.user);
+        // Redirigir al frontend con el token
+        res.redirect(`http://localhost:3000/auth/callback?token=${token}`);
+    }
+
+    @Get('profile')
     @ApiOperation({ summary: 'Obtener perfil del usuario autenticado' })
     @UseGuards(AuthGuard('jwt'))
     getProfile(@Req() req: any) {
