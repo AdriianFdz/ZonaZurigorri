@@ -18,6 +18,10 @@ const nextConfig: NextConfig = {
         hostname: 's3.ppllstatics.com',
         pathname: '/elcorreo/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
     ],
   },
 };

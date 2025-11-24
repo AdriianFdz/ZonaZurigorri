@@ -14,15 +14,13 @@ export default function AuthCallback() {
             // Guardar token en localStorage
             localStorage.setItem('auth_token', token);
 
-            // Redirigir a la página principal
-            router.push('/');
+            // Redirigir a la página principal y recargar
+            window.location.href = '/';
         } else {
             // Si no hay token, redirigir al inicio
             router.push('/');
         }
-    }, [searchParams, router]);
-
-    return (
+    }, [searchParams, router]); return (
         <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-burdeos-dark to-burdeos-light">
             <div className="text-center">
                 <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-white mx-auto mb-4"></div>

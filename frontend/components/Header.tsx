@@ -4,13 +4,42 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Logo from "@/components/Logo";
 import NavLink from "@/components/NavLink";
-import { LogIn, X } from "lucide-react";
+import { LogIn, LogOut, X, ChevronDown } from "lucide-react";
+import Image from "next/image";
+
+interface UserProfile {
+    userId: string;
+    email: string;
+    name: string;
+    picture?: string;
+}
 
 export default function Header() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [showLoginModal, setShowLoginModal] = useState(false);
+    const [showUserMenu, setShowUserMenu] = useState(false);
+    const [user, setUser] = useState<UserProfile | null>(null);
     const pathname = usePathname();
     const isHomePage = pathname === "/";
+
+    // Verificar si hay sesión al cargar
+    useEffect(() => {
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+            // Obtener perfil del usuario
+            fetch('http://localhost:8000/api/auth/profile', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+                .then(res => res.json())
+                .then(data => setUser(data))
+                .catch(() => {
+                    // Si el token es inválido, eliminarlo
+                    localStorage.removeItem('auth_token');
+                });
+        }
+    }, []);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -61,13 +90,55 @@ export default function Header() {
                         <NavLink href="/promesas">Promesas</NavLink>
                         <NavLink href="/noticias">Noticias</NavLink>
                     </ul>
-                    <button
-                        onClick={() => setShowLoginModal(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-white text-burdeos-light font-semibold rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-                    >
-                        <LogIn size={18} />
-                        Login
-                    </button>
+
+                    {user ? (
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowUserMenu(!showUserMenu)}
+                                className="flex items-center gap-2 px-3 py-2 bg-white/10 backdrop-blur-sm rounded-lg hover:bg-white/20 transition-colors cursor-pointer"
+                            >
+                                {user.picture ? (
+                                    <Image
+                                        src={user.picture}
+                                        alt={user.name}
+                                        width={32}
+                                        height={32}
+                                        className="w-8 h-8 rounded-full"
+                                    />
+                                ) : (
+                                    <div className="w-8 h-8 rounded-full bg-burdeos-light flex items-center justify-center text-white font-semibold">
+                                        {user.name.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                                <span className="text-white font-medium">{user.name}</span>
+                                <ChevronDown size={16} className="text-white" />
+                            </button>
+
+                            {showUserMenu && (
+                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-50">
+                                    <button
+                                        onClick={() => {
+                                            localStorage.removeItem('auth_token');
+                                            setUser(null);
+                                            setShowUserMenu(false);
+                                        }}
+                                        className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
+                                    >
+                                        <LogOut size={18} />
+                                        Cerrar sesión
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <button
+                            onClick={() => setShowLoginModal(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-white text-burdeos-light font-semibold rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                        >
+                            <LogIn size={18} />
+                            Login
+                        </button>
+                    )}
                 </div>
             </div>
 
