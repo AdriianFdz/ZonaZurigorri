@@ -88,7 +88,7 @@ export default function Header() {
                         <div className="space-y-3">
                             {/* Google Login */}
                             <button
-                                onClick={() => {/* Lógica de login con Google */ }}
+                                onClick={() => { window.location.href = 'http://localhost:8000/api/auth/google' }}
                                 className="w-full flex items-center justify-center gap-3 px-6 py-3 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-all font-semibold text-gray-700 cursor-pointer"
                             >
                                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -102,7 +102,7 @@ export default function Header() {
 
                             {/* X (Twitter) Login */}
                             <button
-                                onClick={() => {/* Lógica de login con X */ }}
+                                onClick={() => { window.location.href = 'http://localhost:8000/api/auth/twitter' }}
                                 className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-all font-semibold cursor-pointer"
                             >
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
