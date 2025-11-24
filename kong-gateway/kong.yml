@@ -3,8 +3,18 @@ _transform: true
 
 services:
   - name: microservicio-logica-principal
-    url: http://host.docker.internal:5000 # tu servicio FastAPI local
+    url: http://host.docker.internal:5000
     routes:
       - name: microservicio-logica-principal-route
         paths:
-          - /
+          - /docs
+          - /openapi.json
+          - /api/v1
+        strip_path: false
+  - name: microservicio-auth
+    url: http://host.docker.internal:5001
+    routes:
+      - name: microservicio-auth-route
+        paths:
+          - /api/auth
+        strip_path: false
