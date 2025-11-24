@@ -35,6 +35,7 @@ export default function Page() {
     const [result, setResult] = useState<ValidationResult | null>(null);
     const debounceTimer = useRef<NodeJS.Timeout | null>(null);
     const searchRef = useRef<HTMLDivElement>(null);
+    const isSelectingPlayer = useRef(false);
 
     // Cerrar sugerencias al hacer clic fuera
     useEffect(() => {
@@ -50,6 +51,12 @@ export default function Page() {
 
     // Buscar jugadores con debounce
     useEffect(() => {
+        // Si se está seleccionando un jugador, no hacer búsqueda
+        if (isSelectingPlayer.current) {
+            isSelectingPlayer.current = false;
+            return;
+        }
+
         if (debounceTimer.current) {
             clearTimeout(debounceTimer.current);
         }
@@ -67,7 +74,7 @@ export default function Page() {
                 const response = await fetch(
                     `http://localhost:8000/api/v1/philosophy/players/search?q=${encodeURIComponent(searchQuery)}`
                 );
-                
+
                 if (response.ok) {
                     const data = await response.json();
                     setSuggestions(data.results || []);
@@ -89,10 +96,12 @@ export default function Page() {
     }, [searchQuery]);
 
     const handleSelectPlayer = async (player: PlayerSuggestion) => {
-        setSearchQuery(player.full_name);
+        isSelectingPlayer.current = true;
+        setSuggestions([]);
         setShowSuggestions(false);
         setValidating(true);
         setResult(null);
+        setSearchQuery(player.full_name);
 
         try {
             const response = await fetch(
