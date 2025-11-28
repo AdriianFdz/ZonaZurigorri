@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
-import { FavoritesModule } from './favorites/favorites.module';
 import { User } from './entities/user.entity';
 
 @Module({
@@ -20,12 +19,11 @@ import { User } from './entities/user.entity';
         password: configService.get('DB_PASSWORD', 'postgres'),
         database: configService.get('DB_DATABASE', 'auth_db'),
         entities: [User],
-        synchronize: true, // Solo para desarrollo
+        synchronize: true,
       }),
       inject: [ConfigService],
     }),
     AuthModule,
-    FavoritesModule,
   ],
 })
 export class AppModule { }
