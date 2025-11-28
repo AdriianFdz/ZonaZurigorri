@@ -7,6 +7,7 @@ class ClubSeasons(BaseModel):
     """Represents a club and the total seasons played there"""
     club: ClubDTO
     seasons: int = Field(..., description="Total seasons played at this club")
+    first_start: Optional[str] = Field(default=None, description="Most recent start date for sorting")
 
 
 class Player(BaseModel):

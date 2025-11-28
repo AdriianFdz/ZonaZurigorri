@@ -204,6 +204,7 @@ class PhilosophyService:
                     else:
                         team_info['end_date'] = None
                     
+                    print(f"DEBUG - Extrayendo equipo {team_info['id']}: start={team_info['start_date']}, end={team_info['end_date']}")
                     teams.append(team_info)
                 except Exception as e:
                     print(f"DEBUG - Error extrayendo club: {str(e)}")
@@ -245,53 +246,87 @@ class PhilosophyService:
     
     async def _calculate_clubs_seasons(self, teams: list[Dict[str, Any]]) -> List[ClubSeasons]:
         """
-        Calcula las temporadas totales por club, sumando periodos si jugó varias veces
+        Calcula las temporadas por periodo sin agrupar, mostrando cada etapa por separado
         
         Args:
             teams: Lista de diccionarios con información de clubes
             
         Returns:
-            Lista de ClubSeasons con clubs y temporadas
+            Lista de ClubSeasons con cada periodo ordenado por fecha
         """
-        # Diccionario temporal para acumular: {club_id: {'name': ..., 'seasons': ...}}
-        clubs_temp: Dict[str, Dict[str, Any]] = {}
+        # Función para normalizar fechas a formato YYYY-MM-DD
+        def normalize_date(date_str):
+            if not date_str:
+                return '0000-00-00'
+            try:
+                # Eliminar el signo + si existe y tomar solo la fecha
+                date_str = date_str.replace('+', '')
+                # Asegurar formato completo
+                parts = date_str.split('-')
+                if len(parts) == 1:
+                    return f"{parts[0]}-00-00"
+                elif len(parts) == 2:
+                    return f"{parts[0]}-{parts[1]}-00"
+                else:
+                    return date_str
+            except:
+                return '0000-00-00'
         
-        for team_info in teams:
+        def get_sort_key(team_info):
+            start_date = normalize_date(team_info.get('start_date'))
+            end_date = normalize_date(team_info.get('end_date'))
+            
+            # Si no hay fecha de fin, usar fecha muy lejana para que vaya primero (actual)
+            if end_date == '0000-00-00':
+                end_date = '9999-99-99'
+            
+            # Ordenar por: start_date DESC, end_date DESC
+            # Esto asegura que si dos periodos empiezan en el mismo año,
+            # el que termina más tarde (o no termina) va primero
+            return (start_date, end_date)
+        
+        # Ordenar todos los periodos por fecha de inicio (más reciente primero)
+        sorted_teams = sorted(teams, key=get_sort_key, reverse=True)
+        
+        # Debug: mostrar orden de fechas
+        print("DEBUG - Orden de periodos por fecha:")
+        for t in sorted_teams:
+            start = normalize_date(t.get('start_date'))
+            end = t.get('end_date', 'None')
+            print(f"  - {t.get('id')} | start: {start} | end: {end}")
+        
+        # Procesar cada periodo por separado sin agrupar
+        result = []
+        
+        for team_info in sorted_teams:
             try:
                 club_id = team_info['id']
                 club_entity = await self._get_wikidata_entity(club_id)
                 club_name = await self._get_entity_label(club_entity)
                 
-                # Calcular temporadas de este periodo
+                # Calcular temporadas de este periodo específico
                 seasons = self._calculate_seasons(
                     team_info.get('start_date'),
                     team_info.get('end_date')
                 )
                 
-                # Sumar al total del club (si ya existe, sumar temporadas)
-                if club_id in clubs_temp:
-                    clubs_temp[club_id]['seasons'] += seasons
-                else:
-                    clubs_temp[club_id] = {
-                        'id': club_id,
-                        'name': club_name,
-                        'seasons': seasons
-                    }
+                # Crear entrada para este periodo
+                club = ClubDTO(
+                    id=club_id,
+                    name=club_name
+                )
+                
+                result.append(ClubSeasons(
+                    club=club, 
+                    seasons=seasons,
+                    first_start=normalize_date(team_info.get('start_date'))
+                ))
                     
                 print(f"DEBUG - Club: {club_name} (ID: {club_id}), temporadas este periodo: {seasons}")
                 
             except Exception as e:
                 print(f"DEBUG - Error procesando club {team_info.get('id')}: {str(e)}")
                 continue
-        
-        # Convertir a lista de ClubSeasons
-        result = []
-        for club_data in clubs_temp.values():
-            club = ClubDTO(
-                id=club_data['id'],
-                name=club_data['name']
-            )
-            result.append(ClubSeasons(club=club, seasons=club_data['seasons']))
         
         return result
     
@@ -479,6 +514,17 @@ class PhilosophyService:
         Returns:
             PhilosophyValidationResponse con el resultado de la validación
         """
+        from app.core.redis_client import redis_client
+        import json
+        
+        # Intentar obtener del caché
+        cache_key = f"player_validation:{player_id}"
+        if redis_client.is_connected:
+            cached_result = redis_client.get(cache_key)
+            if cached_result:
+                print(f"DEBUG - Resultado obtenido del caché para {player_id}")
+                return PhilosophyValidationResponse(**cached_result)
+        
         try:
             # Configurar cliente HTTP con timeout más largo (solo para OSM)
             timeout = httpx.Timeout(30.0, connect=10.0)
@@ -653,11 +699,25 @@ class PhilosophyService:
                     image_url=image_url if image_url else None
                 )
                 
-                return PhilosophyValidationResponse(
+                result = PhilosophyValidationResponse(
                     jugador=player,
                     status=status,
                     reason=validation_reason
                 )
+                
+                # Guardar en caché (expira en 24 horas)
+                if redis_client.is_connected:
+                    try:
+                        redis_client.set(
+                            cache_key,
+                            result.dict(),
+                            ttl=86400  # 24 horas
+                        )
+                        print(f"DEBUG - Resultado guardado en caché para {player_id}")
+                    except Exception as cache_error:
+                        print(f"DEBUG - Error guardando en caché: {cache_error}")
+                
+                return result
         except Exception as e:
             import traceback
             print(f"ERROR - Error en validate_philosophy_by_id para player {player_id}: {type(e).__name__}: {str(e)}")
@@ -686,6 +746,16 @@ class PhilosophyService:
         Returns:
             PlayerSearchResponse con hasta 10 resultados
         """
+        from app.core.redis_client import redis_client
+        
+        # Intentar obtener del caché
+        cache_key = f"player_search:{player_name.lower()}"
+        if redis_client.is_connected:
+            cached_result = redis_client.get(cache_key)
+            if cached_result:
+                print(f"DEBUG - Búsqueda obtenida del caché para '{player_name}'")
+                return PlayerSearchResponse(**cached_result)
+        
         loop = asyncio.get_event_loop()
         
         def search_wikidata():
@@ -792,9 +862,23 @@ class PhilosophyService:
         # Filtrar solo futbolistas válidos y limitar a 10
         all_results = [r for r in results if r is not None and not isinstance(r, Exception)][:10]
         
-        return PlayerSearchResponse(
+        response = PlayerSearchResponse(
             results=all_results
         )
+        
+        # Guardar en caché (expira en 1 hora)
+        if redis_client.is_connected:
+            try:
+                redis_client.set(
+                    cache_key,
+                    response.dict(),
+                    ttl=3600  # 1 hora
+                )
+                print(f"DEBUG - Búsqueda guardada en caché para '{player_name}'")
+            except Exception as cache_error:
+                print(f"DEBUG - Error guardando búsqueda en caché: {cache_error}")
+        
+        return response
     
     async def _get_current_club(self, player_id: str) -> Optional[str]:
         """

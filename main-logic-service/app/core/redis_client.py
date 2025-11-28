@@ -50,14 +50,17 @@ class RedisClient:
             print(f"Error getting key {key} from Redis: {e}")
             return None
     
-    def set(self, key: str, value: Any, ttl: int) -> bool:
-        """Set value in cache with TTL (always expires)"""
+    def set(self, key: str, value: Any, ttl: int = 0) -> bool:
+        """Set value in cache with optional TTL. If ttl=0, key never expires"""
         if not self._client:
             return False
         
         try:
             json_value = json.dumps(value)
-            self._client.setex(key, ttl, json_value)
+            if ttl > 0:
+                self._client.setex(key, ttl, json_value)
+            else:
+                self._client.set(key, json_value)
             return True
         except (redis.RedisError, TypeError) as e:
             print(f"Error setting key {key} in Redis: {e}")

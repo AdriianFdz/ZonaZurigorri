@@ -22,6 +22,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
       },
+      {
+        protocol: 'https', // Para permitir imagenes de cualquier fuente en wikidata
+        hostname: '**',
+      },
     ],
   },
 };

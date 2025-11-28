@@ -35,7 +35,6 @@ export default function Header() {
                 .then(res => res.json())
                 .then(data => setUser(data))
                 .catch(() => {
-                    // Si el token es inválido, eliminarlo
                     localStorage.removeItem('auth_token');
                 });
         }
@@ -54,7 +53,6 @@ export default function Header() {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    // Bloquear scroll cuando el modal está abierto
     useEffect(() => {
         if (showLoginModal) {
             document.body.style.overflow = 'hidden';
@@ -62,7 +60,6 @@ export default function Header() {
             document.body.style.overflow = 'unset';
         }
 
-        // Limpiar al desmontar el componente
         return () => {
             document.body.style.overflow = 'unset';
         };
@@ -87,7 +84,7 @@ export default function Header() {
                     <ul className="flex gap-3">
                         <NavLink href="/">Inicio</NavLink>
                         <NavLink href="/validador">Validador</NavLink>
-                        <NavLink href="/promesas">Promesas</NavLink>
+                        <NavLink href="/favoritos">Favoritos</NavLink>
                         <NavLink href="/noticias">Noticias</NavLink>
                     </ul>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 
 interface Article {
@@ -29,7 +29,7 @@ export default function Page() {
     const [endDate, setEndDate] = useState("");
     const [hasMore, setHasMore] = useState(true);
 
-    const fetchNews = async (limit: number, append: boolean = false) => {
+    const fetchNews = useCallback(async (limit: number, append: boolean = false) => {
         setLoading(true);
         setError(null);
 
@@ -57,7 +57,6 @@ export default function Page() {
                 setArticles(data.articles);
             }
 
-            // Si recibimos menos artículos de los solicitados, no hay más
             setHasMore(data.articles.length === limit);
         } catch (err) {
             setError(
@@ -66,11 +65,11 @@ export default function Page() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [startDate, endDate]);
 
     useEffect(() => {
         fetchNews(currentLimit);
-    }, [startDate, endDate]);
+    }, [startDate, endDate, currentLimit, fetchNews]);
 
     const loadMore = () => {
         const newLimit = currentLimit + 10;

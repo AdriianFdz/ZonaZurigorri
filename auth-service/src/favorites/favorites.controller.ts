@@ -22,18 +22,21 @@ export class FavoritesController {
     @Get()
     @ApiOperation({ summary: 'Obtener lista de favoritos del usuario' })
     async getFavorites(@Req() req) {
-        return this.favoritesService.getFavorites(req.user.userId);
+        const favorites = await this.favoritesService.getFavorites(req.user.userId);
+        return { favorites };
     }
 
     @Post()
     @ApiOperation({ summary: 'Agregar jugador a favoritos' })
     async addFavorite(@Req() req, @Body('playerId') playerId: string) {
-        return this.favoritesService.addFavorite(req.user.userId, playerId);
+        const favorites = await this.favoritesService.addFavorite(req.user.userId, playerId);
+        return { favorites };
     }
 
     @Delete(':playerId')
     @ApiOperation({ summary: 'Eliminar jugador de favoritos' })
     async removeFavorite(@Req() req, @Param('playerId') playerId: string) {
-        return this.favoritesService.removeFavorite(req.user.userId, playerId);
+        const favorites = await this.favoritesService.removeFavorite(req.user.userId, playerId);
+        return { favorites };
     }
 }

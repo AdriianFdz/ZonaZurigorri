@@ -11,13 +11,9 @@ export default function AuthCallback() {
         const token = searchParams.get('token');
 
         if (token) {
-            // Guardar token en localStorage
             localStorage.setItem('auth_token', token);
-
-            // Redirigir a la página principal y recargar
             window.location.href = '/';
         } else {
-            // Si no hay token, redirigir al inicio
             router.push('/');
         }
     }, [searchParams, router]); return (

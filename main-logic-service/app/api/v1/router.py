@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1 import philosophy_validator, talent_predictor, news_retriever
+from app.api.v1 import philosophy_validator, talent_predictor, news_retriever, favorites
 
 api_router = APIRouter()
 
@@ -19,4 +19,9 @@ api_router.include_router(
     news_retriever.router,
     prefix="/news",
     tags=["news"]
+)
+
+api_router.include_router(
+    favorites.router,
+    tags=["favorites"]
 )

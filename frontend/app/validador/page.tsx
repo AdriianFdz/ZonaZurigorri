@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search, MapPin, Calendar, CheckCircle, XCircle, Loader2, Trophy, HelpCircle } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Search, MapPin, Calendar, CheckCircle, XCircle, Loader2, Trophy, HelpCircle, Star } from "lucide-react";
+import { addFavorite, removeFavorite, isFavorite } from "@/lib/favoritesService";
+import Image from "next/image";
 
 interface PlayerSuggestion {
     id: string;
@@ -27,17 +30,28 @@ interface ValidationResult {
 }
 
 export default function Page() {
+    const searchParams = useSearchParams();
     const [searchQuery, setSearchQuery] = useState("");
     const [suggestions, setSuggestions] = useState<PlayerSuggestion[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [loadingSuggestions, setLoadingSuggestions] = useState(false);
     const [validating, setValidating] = useState(false);
     const [result, setResult] = useState<ValidationResult | null>(null);
+    const [addingFavorite, setAddingFavorite] = useState(false);
+    const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+    const [isInFavorites, setIsInFavorites] = useState(false);
     const debounceTimer = useRef<NodeJS.Timeout | null>(null);
     const searchRef = useRef<HTMLDivElement>(null);
     const isSelectingPlayer = useRef(false);
 
-    // Cerrar sugerencias al hacer clic fuera
+    // Validar jugador desde URL al cargar
+    useEffect(() => {
+        const playerId = searchParams.get('player');
+        if (playerId) {
+            validatePlayerById(playerId);
+        }
+    }, [searchParams]);
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
@@ -49,9 +63,7 @@ export default function Page() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    // Buscar jugadores con debounce
     useEffect(() => {
-        // Si se está seleccionando un jugador, no hacer búsqueda
         if (isSelectingPlayer.current) {
             isSelectingPlayer.current = false;
             return;
@@ -69,23 +81,26 @@ export default function Page() {
 
         setLoadingSuggestions(true);
 
-        debounceTimer.current = setTimeout(async () => {
-            try {
-                const response = await fetch(
-                    `http://localhost:8000/api/v1/philosophy/players/search?q=${encodeURIComponent(searchQuery)}`
-                );
+        debounceTimer.current = setTimeout(() => {
+            const fetchPlayers = async () => {
+                try {
+                    const response = await fetch(
+                        `http://localhost:8000/api/v1/philosophy/players/search?q=${encodeURIComponent(searchQuery)}`
+                    );
 
-                if (response.ok) {
-                    const data = await response.json();
-                    setSuggestions(data.results || []);
-                    setShowSuggestions(true);
+                    if (response.ok) {
+                        const data = await response.json();
+                        setSuggestions(data.results || []);
+                        setShowSuggestions(true);
+                    }
+                } catch (error) {
+                    console.error("Error buscando jugadores:", error);
+                    setSuggestions([]);
+                } finally {
+                    setLoadingSuggestions(false);
                 }
-            } catch (error) {
-                console.error("Error buscando jugadores:", error);
-                setSuggestions([]);
-            } finally {
-                setLoadingSuggestions(false);
-            }
+            };
+            void fetchPlayers();
         }, 300);
 
         return () => {
@@ -95,22 +110,28 @@ export default function Page() {
         };
     }, [searchQuery]);
 
-    const handleSelectPlayer = async (player: PlayerSuggestion) => {
-        isSelectingPlayer.current = true;
-        setSuggestions([]);
-        setShowSuggestions(false);
+    const validatePlayerById = async (playerId: string, playerName?: string) => {
         setValidating(true);
         setResult(null);
-        setSearchQuery(player.full_name);
+        setSelectedPlayerId(playerId);
+        if (playerName) {
+            setSearchQuery(playerName);
+        }
 
         try {
             const response = await fetch(
-                `http://localhost:8000/api/v1/philosophy/validate/${player.id}`
+                `http://localhost:8000/api/v1/philosophy/validate/${playerId}`
             );
 
             if (response.ok) {
                 const data = await response.json();
                 setResult(data);
+                if (!playerName) {
+                    setSearchQuery(data.jugador.name);
+                }
+
+                const inFavorites = await isFavorite(playerId);
+                setIsInFavorites(inFavorites);
             } else {
                 console.error("Error validando jugador");
             }
@@ -121,14 +142,46 @@ export default function Page() {
         }
     };
 
+    const handleSelectPlayer = async (player: PlayerSuggestion) => {
+        isSelectingPlayer.current = true;
+        setSuggestions([]);
+        setShowSuggestions(false);
+        await validatePlayerById(player.id, player.full_name);
+    };
+
+    const handleToggleFavorite = async () => {
+        if (!selectedPlayerId) return;
+
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+            alert('Debes iniciar sesión para gestionar favoritos');
+            return;
+        }
+
+        setAddingFavorite(true);
+
+        let result;
+        if (isInFavorites) {
+            result = await removeFavorite(selectedPlayerId);
+        } else {
+            result = await addFavorite(selectedPlayerId);
+        }
+
+        setAddingFavorite(false);
+
+        if (result.success) {
+            setIsInFavorites(!isInFavorites);
+        }
+    };
+
     const getStatusColor = (status: string) => {
         switch (status) {
             case "valid":
-                return "bg-green-50 border-green-200";
+                return "bg-green-50 border-burdeos-dark";
             case "invalid":
-                return "bg-red-50 border-red-200";
+                return "bg-red-50 border-burdeos-dark";
             case "doubt":
-                return "bg-yellow-50 border-yellow-200";
+                return "bg-yellow-50 border-burdeos-dark";
             default:
                 return "bg-gray-50 border-gray-200";
         }
@@ -157,19 +210,6 @@ export default function Page() {
                 return "Duda sobre si cumple la filosofía";
             default:
                 return "";
-        }
-    };
-
-    const getStatusTextColor = (status: string) => {
-        switch (status) {
-            case "valid":
-                return "text-green-700";
-            case "invalid":
-                return "text-red-700";
-            case "doubt":
-                return "text-yellow-700";
-            default:
-                return "text-gray-700";
         }
     };
 
@@ -205,7 +245,6 @@ export default function Page() {
                                     )}
                                 </div>
 
-                                {/* Sugerencias */}
                                 {showSuggestions && suggestions.length > 0 && (
                                     <div className="absolute z-10 w-full mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto">
                                         {suggestions.map((player) => (
@@ -215,23 +254,23 @@ export default function Page() {
                                                 className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0 cursor-pointer flex items-center gap-3"
                                             >
                                                 {player.image_url ? (
-                                                    <img
-                                                        src={player.image_url}
-                                                        alt={player.full_name}
-                                                        className="w-12 h-12 rounded-full object-cover shrink-0 shadow-md"
-                                                        onError={(e) => {
-                                                            e.currentTarget.style.display = 'none';
-                                                            e.currentTarget.nextElementSibling!.classList.remove('hidden');
-                                                        }}
-                                                    />
-                                                ) : null}
-                                                <div className={`w-12 h-12 rounded-full bg-gradient-to-br from-burdeos-dark to-burdeos-light flex items-center justify-center text-white font-bold text-lg shrink-0 shadow-md ${player.image_url ? 'hidden' : ''}`}>
-                                                    {player.full_name
-                                                        .split(" ")
-                                                        .map((n) => n[0])
-                                                        .join("")
-                                                        .slice(0, 2)}
-                                                </div>
+                                                    <div className="relative w-12 h-12 rounded-full overflow-hidden shrink-0 shadow-md">
+                                                        <Image
+                                                            src={player.image_url}
+                                                            alt={player.full_name}
+                                                            fill
+                                                            className="object-cover"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div className="w-12 h-12 rounded-full bg-linear-to-br from-burdeos-dark to-burdeos-light flex items-center justify-center text-white font-bold text-lg shrink-0 shadow-md">
+                                                        {player.full_name
+                                                            .split(" ")
+                                                            .map((n) => n[0])
+                                                            .join("")
+                                                            .slice(0, 2)}
+                                                    </div>
+                                                )}
                                                 <div className="flex-1">
                                                     <div className="font-semibold text-gray-900">
                                                         {player.full_name}
@@ -269,38 +308,55 @@ export default function Page() {
                         {result && !validating && (
                             <div className={`mt-8 rounded-xl border-2 overflow-hidden ${getStatusColor(result.status)}`}>
                                 {/* Header con foto y estado */}
-                                <div className="bg-gradient-to-r from-burdeos-dark to-burdeos-light p-6">
+                                <div className="bg-linear-to-r from-burdeos-dark to-burdeos-light p-6">
                                     <div className="flex flex-col md:flex-row items-center gap-6">
                                         <div className="shrink-0">
                                             {result.jugador.image_url ? (
-                                                <img
-                                                    src={result.jugador.image_url}
-                                                    alt={result.jugador.name}
-                                                    className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-2xl"
-                                                    onError={(e) => {
-                                                        e.currentTarget.style.display = 'none';
-                                                        e.currentTarget.nextElementSibling!.classList.remove('hidden');
-                                                    }}
-                                                />
-                                            ) : null}
-                                            <div className={`w-32 h-32 rounded-full border-4 border-white shadow-2xl flex items-center justify-center text-white text-4xl font-bold bg-gradient-to-br from-burdeos-light to-burdeos-dark ${result.jugador.image_url ? 'hidden' : ''}`}>
-                                                {result.jugador.name
-                                                    .split(" ")
-                                                    .map((n: string) => n[0])
-                                                    .join("")
-                                                    .slice(0, 2)}
-                                            </div>
+                                                <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-2xl">
+                                                    <Image
+                                                        src={result.jugador.image_url}
+                                                        alt={result.jugador.name}
+                                                        fill
+                                                        className="object-cover"
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="w-32 h-32 rounded-full border-4 border-white shadow-2xl flex items-center justify-center text-white text-4xl font-bold bg-linear-to-br from-burdeos-light to-burdeos-dark">
+                                                    {result.jugador.name
+                                                        .split(" ")
+                                                        .map((n: string) => n[0])
+                                                        .join("")
+                                                        .slice(0, 2)}
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div className="flex-1 text-white text-center md:text-left">
                                             <h3 className="font-bold text-3xl mb-3">
                                                 {result.jugador.name}
                                             </h3>
-                                            <div className="flex items-center justify-center md:justify-start gap-2 bg-white/20 rounded-lg px-4 py-2 backdrop-blur-sm inline-flex">
-                                                {getStatusIcon(result.status)}
-                                                <p className="font-semibold text-lg">
-                                                    {getStatusText(result.status)}
-                                                </p>
+                                            <div className="flex flex-col md:flex-row items-center gap-3">
+                                                <div className="flex items-center gap-2 bg-white/20 rounded-lg px-4 py-2 backdrop-blur-sm">
+                                                    {getStatusIcon(result.status)}
+                                                    <p className="font-semibold text-lg">
+                                                        {getStatusText(result.status)}
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    onClick={handleToggleFavorite}
+                                                    disabled={addingFavorite}
+                                                    className={`flex items-center gap-2 backdrop-blur-sm px-4 py-2 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${isInFavorites
+                                                        ? 'bg-white text-burdeos-dark hover:bg-white/90 shadow-lg'
+                                                        : 'bg-white/30 text-white hover:bg-white/40'
+                                                        }`}
+                                                >
+                                                    {addingFavorite ? (
+                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                    ) : (
+                                                        <Star className={`w-5 h-5 ${isInFavorites ? 'fill-burdeos-dark text-burdeos-dark' : 'text-white'}`} />
+                                                    )}
+                                                    {addingFavorite ? 'Guardando...' : (isInFavorites ? 'En favoritos' : 'Agregar a favoritos')}
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -342,27 +398,33 @@ export default function Page() {
                                                 <Trophy className="w-5 h-5 text-burdeos-light" />
                                                 Trayectoria en clubes
                                             </p>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                                {result.jugador.clubs.map((club, idx) => (
-                                                    <div
-                                                        key={idx}
-                                                        className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200"
-                                                    >
-                                                        <div className="flex items-start justify-between">
-                                                            <div className="flex-1">
-                                                                <p className="font-semibold text-gray-900 mb-1">
+                                            <div className="relative">
+                                                {/* Línea vertical del timeline */}
+                                                <div className="absolute left-6 top-3 bottom-3 w-0.5 bg-burdeos-light/30"></div>
+
+                                                <div className="space-y-4">
+                                                    {result.jugador.clubs.map((club, idx) => (
+                                                        <div
+                                                            key={idx}
+                                                            className="relative flex items-start gap-4 group"
+                                                        >
+                                                            {/* Punto en el timeline */}
+                                                            <div className="relative z-10 flex items-center justify-center w-12 h-12 rounded-full bg-white border-2 border-burdeos-light shadow-sm group-hover:scale-110 transition-transform">
+                                                                <span className="text-burdeos-dark font-bold text-sm">{club.seasons}</span>
+                                                            </div>
+
+                                                            {/* Contenido */}
+                                                            <div className="flex-1 bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all border border-gray-200 group-hover:border-burdeos-light">
+                                                                <p className="font-semibold text-gray-900 text-lg">
                                                                     {club.club.name}
                                                                 </p>
-                                                                <p className="text-sm text-gray-600">
+                                                                <p className="text-sm text-gray-600 mt-1">
                                                                     {club.seasons} {club.seasons === 1 ? 'temporada' : 'temporadas'}
                                                                 </p>
                                                             </div>
-                                                            <div className="bg-burdeos-light/10 rounded-full w-10 h-10 flex items-center justify-center shrink-0">
-                                                                <span className="text-burdeos-dark font-bold">{club.seasons}</span>
-                                                            </div>
                                                         </div>
-                                                    </div>
-                                                ))}
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
                                     )}
