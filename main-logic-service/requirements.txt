@@ -12,6 +12,10 @@ wikidata==0.9.0
 # Redis Cache
 redis==5.0.1
 
+# Database
+psycopg2-binary==2.9.10
+sqlalchemy==2.0.36
+
 # JWT
 PyJWT==2.8.0
 

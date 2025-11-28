@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1 import philosophy_validator, talent_predictor, news_retriever, favorites
+from app.api.v1 import philosophy_validator, talent_predictor, news_retriever, favorites, comments
 
 api_router = APIRouter()
 
@@ -24,4 +24,9 @@ api_router.include_router(
 api_router.include_router(
     favorites.router,
     tags=["favorites"]
+)
+
+api_router.include_router(
+    comments.router,
+    tags=["comments"]
 )

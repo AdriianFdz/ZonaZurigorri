@@ -22,6 +22,16 @@ class Settings(BaseSettings):
     redis_password: str = ""
     news_cache_ttl: int = 3600  # 1 hour in seconds
     
+    # PostgreSQL Configuration
+    DB_HOST: str = "localhost"
+    DB_PORT: int = 5432
+    DB_USERNAME: str = "postgres"
+    DB_PASSWORD: str = "postgres"
+    DB_DATABASE: str = "auth_db"
+    
+    # JWT Configuration
+    JWT_SECRET: str = ""
+    
     class Config:
         env_file = ".env"
 
