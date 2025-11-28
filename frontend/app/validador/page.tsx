@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, MapPin, Calendar, CheckCircle, XCircle, Loader2, Trophy, HelpCircle, Star } from "lucide-react";
+import { Search, MapPin, Calendar, CheckCircle, XCircle, Loader2, Trophy, HelpCircle, Star, MessageCircle, Trash2 } from "lucide-react";
 import { addFavorite, removeFavorite, isFavorite } from "@/lib/favoritesService";
 import Image from "next/image";
 
@@ -29,6 +29,19 @@ interface ValidationResult {
     reason: string;
 }
 
+interface Comment {
+    id: string;
+    userId: string;
+    playerId: string;
+    comment: string;
+    createdAt: string;
+    user: {
+        id: string;
+        name: string;
+        picture?: string;
+    };
+}
+
 export default function Page() {
     const searchParams = useSearchParams();
     const [searchQuery, setSearchQuery] = useState("");
@@ -40,6 +53,10 @@ export default function Page() {
     const [addingFavorite, setAddingFavorite] = useState(false);
     const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
     const [isInFavorites, setIsInFavorites] = useState(false);
+    const [comments, setComments] = useState<Comment[]>([]);
+    const [newComment, setNewComment] = useState("");
+    const [loadingComments, setLoadingComments] = useState(false);
+    const [submittingComment, setSubmittingComment] = useState(false);
     const debounceTimer = useRef<NodeJS.Timeout | null>(null);
     const searchRef = useRef<HTMLDivElement>(null);
     const isSelectingPlayer = useRef(false);
@@ -132,6 +149,8 @@ export default function Page() {
 
                 const inFavorites = await isFavorite(playerId);
                 setIsInFavorites(inFavorites);
+
+                loadComments(playerId);
             } else {
                 console.error("Error validando jugador");
             }
@@ -139,6 +158,77 @@ export default function Page() {
             console.error("Error:", error);
         } finally {
             setValidating(false);
+        }
+    };
+
+    const loadComments = async (playerId: string) => {
+        setLoadingComments(true);
+        try {
+            const response = await fetch(
+                `http://localhost:8000/api/v1/comments/player/${playerId}`
+            );
+            if (response.ok) {
+                const data = await response.json();
+                setComments(data);
+            }
+        } catch (error) {
+            console.error("Error cargando comentarios:", error);
+        } finally {
+            setLoadingComments(false);
+        }
+    };
+
+    const handleSubmitComment = async () => {
+        if (!newComment.trim() || !selectedPlayerId) return;
+
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+            alert('Debes iniciar sesión para comentar');
+            return;
+        }
+
+        setSubmittingComment(true);
+        try {
+            const response = await fetch('http://localhost:8000/api/v1/comments', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    playerId: selectedPlayerId,
+                    comment: newComment,
+                }),
+            });
+
+            if (response.ok) {
+                setNewComment('');
+                loadComments(selectedPlayerId);
+            }
+        } catch (error) {
+            console.error("Error enviando comentario:", error);
+        } finally {
+            setSubmittingComment(false);
+        }
+    };
+
+    const handleDeleteComment = async (commentId: string) => {
+        const token = localStorage.getItem('auth_token');
+        if (!token) return;
+
+        try {
+            const response = await fetch(`http://localhost:8000/api/v1/comments/${commentId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (response.ok && selectedPlayerId) {
+                loadComments(selectedPlayerId);
+            }
+        } catch (error) {
+            console.error("Error eliminando comentario:", error);
         }
     };
 
@@ -428,6 +518,110 @@ export default function Page() {
                                             </div>
                                         </div>
                                     )}
+
+                                    {/* Sección de Comentarios */}
+                                    <div className="border-t border-gray-200 pt-6">
+                                        <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2 text-lg">
+                                            <MessageCircle className="w-5 h-5 text-burdeos-light" />
+                                            Comentarios ({comments.length})
+                                        </h3>
+
+                                        {/* Formulario para nuevo comentario */}
+                                        <div className="mb-6">
+                                            <textarea
+                                                value={newComment}
+                                                onChange={(e) => setNewComment(e.target.value)}
+                                                placeholder="Escribe tu opinión sobre este jugador..."
+                                                className="w-full p-3 border text-gray-900 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-burdeos-light resize-none"
+                                                rows={3}
+                                            />
+                                            <button
+                                                onClick={handleSubmitComment}
+                                                disabled={submittingComment || !newComment.trim()}
+                                                className="mt-2 px-4 py-2 bg-burdeos-dark text-white rounded-lg hover:bg-burdeos-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {submittingComment ? 'Enviando...' : 'Comentar'}
+                                            </button>
+                                        </div>
+
+                                        {/* Lista de comentarios */}
+                                        <div className="space-y-4">
+                                            {loadingComments ? (
+                                                <div className="flex justify-center py-8">
+                                                    <Loader2 className="w-6 h-6 animate-spin text-burdeos-light" />
+                                                </div>
+                                            ) : comments.length === 0 ? (
+                                                <p className="text-gray-600 text-center py-8">
+                                                    No hay comentarios aún. ¡Sé el primero en comentar!
+                                                </p>
+                                            ) : (
+                                                comments.map((comment) => (
+                                                    <div
+                                                        key={comment.id}
+                                                        className="bg-white p-4 rounded-lg shadow-sm border border-gray-200"
+                                                    >
+                                                        <div className="flex items-start gap-3">
+                                                            {comment.user.picture ? (
+                                                                <div className="relative w-10 h-10 rounded-full overflow-hidden shrink-0">
+                                                                    <Image
+                                                                        src={comment.user.picture}
+                                                                        alt={comment.user.name}
+                                                                        fill
+                                                                        className="object-cover"
+                                                                    />
+                                                                </div>
+                                                            ) : (
+                                                                <div className="w-10 h-10 rounded-full bg-burdeos-light text-white flex items-center justify-center shrink-0">
+                                                                    {comment.user.name.charAt(0).toUpperCase()}
+                                                                </div>
+                                                            )}
+                                                            <div className="flex-1">
+                                                                <div className="flex items-center justify-between">
+                                                                    <p className="font-semibold text-gray-900">
+                                                                        {comment.user.name}
+                                                                    </p>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="text-xs text-gray-500">
+                                                                            {new Date(comment.createdAt).toLocaleDateString('es-ES', {
+                                                                                year: 'numeric',
+                                                                                month: 'short',
+                                                                                day: 'numeric',
+                                                                            })}
+                                                                        </span>
+                                                                        {(() => {
+                                                                            const token = localStorage.getItem('auth_token');
+                                                                            if (!token) return null;
+
+                                                                            try {
+                                                                                const payload = JSON.parse(atob(token.split('.')[1]));
+                                                                                if (payload.sub === comment.userId) {
+                                                                                    return (
+                                                                                        <button
+                                                                                            onClick={() => handleDeleteComment(comment.id)}
+                                                                                            className="text-red-500 hover:text-red-700 transition-colors"
+                                                                                            title="Eliminar comentario"
+                                                                                        >
+                                                                                            <Trash2 className="w-4 h-4" />
+                                                                                        </button>
+                                                                                    );
+                                                                                }
+                                                                            } catch {
+                                                                                return null;
+                                                                            }
+                                                                            return null;
+                                                                        })()}
+                                                                    </div>
+                                                                </div>
+                                                                <p className="text-gray-700 mt-1">
+                                                                    {comment.comment}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}

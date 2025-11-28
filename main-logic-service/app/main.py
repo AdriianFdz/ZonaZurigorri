@@ -4,6 +4,7 @@ from app.core.config import settings
 from app.api.v1.router import api_router
 from app.core.redis_client import redis_client
 from app.core.scheduler import task_scheduler
+from app.core.database import Base, engine
 from contextlib import asynccontextmanager
 
 
@@ -12,6 +13,9 @@ async def lifespan(app: FastAPI):
     """Gestiona el ciclo de vida de la aplicación"""
     # Startup
     print("Iniciando aplicación...")
+    
+    # Crear tablas de base de datos
+    Base.metadata.create_all(bind=engine)
     
     # Conectar a Redis
     redis_client.connect()
