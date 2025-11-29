@@ -16,6 +16,8 @@ RUN pnpm install
 # Copiar código fuente
 COPY . .
 
+# Build de Next.js
+RUN pnpm run build
 
 # Production stage
 FROM node:20-alpine
@@ -40,9 +42,6 @@ COPY --from=builder /app/next.config.ts ./next.config.ts
 # Variables de entorno para Next.js
 ENV NODE_ENV=production
 ENV PORT=3000
-
-# Build de Next.js
-RUN pnpm run build
 
 # Exponer puerto
 EXPOSE 3000
