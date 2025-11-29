@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { API_BASE_URL } from "@/config";
 
 interface Article {
     id: string;
@@ -43,7 +42,7 @@ export default function Page() {
             if (endDate) params.append("end_date", endDate);
 
             const response = await fetch(
-                `${API_BASE_URL}/api/v1/news/?${params}`
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/news/?${params}`
             );
 
             if (!response.ok) {

@@ -5,7 +5,6 @@ import { useSearchParams } from "next/navigation";
 import { Search, MapPin, Calendar, CheckCircle, XCircle, Loader2, Trophy, HelpCircle, Star, MessageCircle, Trash2 } from "lucide-react";
 import { addFavorite, removeFavorite, isFavorite } from "@/lib/favoritesService";
 import Image from "next/image";
-import { API_BASE_URL } from "@/config";
 
 interface PlayerSuggestion {
     id: string;
@@ -103,7 +102,7 @@ function ValidadorContent() {
             const fetchPlayers = async () => {
                 try {
                     const response = await fetch(
-                        `${API_BASE_URL}/api/v1/philosophy/players/search?q=${encodeURIComponent(searchQuery)}`
+                        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/philosophy/players/search?q=${encodeURIComponent(searchQuery)}`
                     );
 
                     if (response.ok) {
@@ -138,7 +137,7 @@ function ValidadorContent() {
 
         try {
             const response = await fetch(
-                `${API_BASE_URL}/api/v1/philosophy/validate/${playerId}`
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/philosophy/validate/${playerId}`
             );
 
             if (response.ok) {
@@ -166,7 +165,7 @@ function ValidadorContent() {
         setLoadingComments(true);
         try {
             const response = await fetch(
-                `${API_BASE_URL}/api/v1/comments/player/${playerId}`
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/comments/player/${playerId}`
             );
             if (response.ok) {
                 const data = await response.json();
@@ -190,7 +189,7 @@ function ValidadorContent() {
 
         setSubmittingComment(true);
         try {
-            const response = await fetch(`${API_BASE_URL}/api/v1/comments`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/comments`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -218,7 +217,7 @@ function ValidadorContent() {
         if (!token) return;
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/v1/comments/${commentId}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/comments/${commentId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
