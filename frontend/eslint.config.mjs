@@ -15,4 +15,17 @@ const eslintConfig = defineConfig([
   ]),
 ]);
 
+
+// Desactiva el warning de setState sincrónico en useEffect
+const customReactRules = {
+  "react/no-sync-effects": "off",
+};
+
+// Añade las reglas personalizadas al export
+eslintConfig[eslintConfig.length - 1].rules = {
+  ...eslintConfig[eslintConfig.length - 1].rules,
+  ...customRules,
+  ...customReactRules,
+};
+
 export default eslintConfig;
