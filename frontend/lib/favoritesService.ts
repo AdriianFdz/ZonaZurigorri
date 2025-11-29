@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000/api/v1/favorites';
+import { API_BASE_URL } from '@/config';
 
 function getAuthHeaders() {
     const token = localStorage.getItem('auth_token');
@@ -10,7 +10,7 @@ function getAuthHeaders() {
 
 export async function addFavorite(playerId: string): Promise<{ success: boolean; message?: string }> {
     try {
-        const response = await fetch(API_BASE_URL, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/favorites`, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify({ playerId })
@@ -30,7 +30,7 @@ export async function addFavorite(playerId: string): Promise<{ success: boolean;
 
 export async function getFavorites(): Promise<string[]> {
     try {
-        const response = await fetch(API_BASE_URL, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/favorites`, {
             method: 'GET',
             headers: getAuthHeaders()
         });
@@ -54,7 +54,7 @@ export async function isFavorite(playerId: string): Promise<boolean> {
 
 export async function removeFavorite(playerId: string): Promise<{ success: boolean; message?: string }> {
     try {
-        const response = await fetch(`${API_BASE_URL}/${playerId}`, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/favorites/${playerId}`, {
             method: 'DELETE',
             headers: getAuthHeaders()
         });

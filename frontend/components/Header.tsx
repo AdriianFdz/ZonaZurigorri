@@ -6,6 +6,7 @@ import Logo from "@/components/Logo";
 import NavLink from "@/components/NavLink";
 import { LogIn, LogOut, X, ChevronDown } from "lucide-react";
 import Image from "next/image";
+import { API_BASE_URL } from '@/config';
 
 interface UserProfile {
     userId: string;
@@ -27,7 +28,7 @@ export default function Header() {
         const token = localStorage.getItem('auth_token');
         if (token) {
             // Obtener perfil del usuario
-            fetch('http://localhost:8000/api/auth/profile', {
+            fetch(`${API_BASE_URL}/api/auth/profile`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -156,7 +157,7 @@ export default function Header() {
                         <div className="space-y-3">
                             {/* Google Login */}
                             <button
-                                onClick={() => { window.location.href = 'http://localhost:8000/api/auth/google' }}
+                                onClick={() => { window.location.href = `${API_BASE_URL}/api/auth/google` }}
                                 className="w-full flex items-center justify-center gap-3 px-6 py-3 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-all font-semibold text-gray-700 cursor-pointer"
                             >
                                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -170,7 +171,7 @@ export default function Header() {
 
                             {/* Discord Login */}
                             <button
-                                onClick={() => { window.location.href = 'http://localhost:8000/api/auth/discord' }}
+                                onClick={() => { window.location.href = `${API_BASE_URL}/api/auth/discord` }}
                                 className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-[#5865F2] text-white rounded-lg hover:bg-[#4752C4] transition-all font-semibold cursor-pointer"
                             >
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

@@ -6,6 +6,7 @@ import { getFavorites, removeFavorite } from "@/lib/favoritesService";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { API_BASE_URL } from '@/config';
 
 interface Player {
     id: string;
@@ -34,7 +35,7 @@ export default function FavoritosPage() {
 
             const playerPromises = favIds.map(async (id): Promise<Player | null> => {
                 try {
-                    const response = await fetch(`http://localhost:8000/api/v1/philosophy/validate/${id}`);
+                    const response = await fetch(`${API_BASE_URL}/api/v1/philosophy/validate/${id}`);
                     if (response.ok) {
                         const data = await response.json();
                         return {
@@ -99,7 +100,7 @@ export default function FavoritosPage() {
 
                                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                                     <a
-                                        href="http://localhost:8000/api/auth/google"
+                                        href={`${API_BASE_URL}/api/auth/google`}
                                         className="inline-flex items-center justify-center gap-3 bg-white border-2 border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all"
                                     >
                                         <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -112,7 +113,7 @@ export default function FavoritosPage() {
                                     </a>
 
                                     <a
-                                        href="http://localhost:8000/api/auth/discord"
+                                        href={`${API_BASE_URL}/api/auth/discord`}
                                         className="inline-flex items-center justify-center gap-3 bg-[#5865F2] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#4752C4] transition-colors"
                                     >
                                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
