@@ -10,12 +10,6 @@ api_router.include_router(
 )
 
 api_router.include_router(
-    talent_predictor.router,
-    prefix="/talent",
-    tags=["talent"]
-)
-
-api_router.include_router(
     news_retriever.router,
     prefix="/news",
     tags=["news"]
