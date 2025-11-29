@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1 import philosophy_validator, talent_predictor, news_retriever, favorites, comments
+from app.api.v1 import philosophy_validator, news_retriever, favorites, comments
 
 api_router = APIRouter()
 
