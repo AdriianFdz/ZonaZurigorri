@@ -22,4 +22,4 @@ COPY ./app ./app
 EXPOSE 5000
 
 # Comando para ejecutar la aplicación
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-5000}"]
+CMD ["python", "-m", "app.main"]
