@@ -3,7 +3,7 @@ _transform: true
 
 services:
   - name: microservicio-logica-principal
-    url: http://main-logic-service.railway.internal:5000
+    url: main-logic-service-production.up.railway.app
     routes:
       - name: microservicio-logica-principal-route
         paths:
@@ -12,7 +12,7 @@ services:
           - /api/v1
         strip_path: false
   - name: microservicio-auth
-    url: http://auth-service.railway.internal:5001
+    url: auth-service-production-f9bf.up.railway.app
     routes:
       - name: microservicio-auth-route
         paths:
