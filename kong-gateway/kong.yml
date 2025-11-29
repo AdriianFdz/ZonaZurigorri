@@ -3,7 +3,7 @@ _transform: true
 
 services:
   - name: microservicio-logica-principal
-    url: http://host.docker.internal:5000
+    url: http://main-logic-service:8001
     routes:
       - name: microservicio-logica-principal-route
         paths:
@@ -12,7 +12,7 @@ services:
           - /api/v1
         strip_path: false
   - name: microservicio-auth
-    url: http://host.docker.internal:5001
+    url: http://auth-service:5001
     routes:
       - name: microservicio-auth-route
         paths:

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search, MapPin, Calendar, CheckCircle, XCircle, Loader2, Trophy, HelpCircle, Star, MessageCircle, Trash2 } from "lucide-react";
 import { addFavorite, removeFavorite, isFavorite } from "@/lib/favoritesService";
@@ -42,7 +42,7 @@ interface Comment {
     };
 }
 
-export default function Page() {
+function ValidadorContent() {
     const searchParams = useSearchParams();
     const [searchQuery, setSearchQuery] = useState("");
     const [suggestions, setSuggestions] = useState<PlayerSuggestion[]>([]);
@@ -629,5 +629,17 @@ export default function Page() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function Page() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-burdeos-dark"></div>
+            </div>
+        }>
+            <ValidadorContent />
+        </Suspense>
     );
 }

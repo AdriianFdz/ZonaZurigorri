@@ -4,11 +4,15 @@ import { AuthGuard } from '@nestjs/passport';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 
 @ApiTags('auth')
 @Controller('api/auth')
 export class AuthController {
-    constructor(private authService: AuthService) { }
+    constructor(
+        private authService: AuthService,
+        private configService: ConfigService,
+    ) { }
 
     @Get('google')
     @ApiOperation({ summary: 'Iniciar login con Google' })
@@ -21,8 +25,9 @@ export class AuthController {
     @UseGuards(AuthGuard('google'))
     async googleAuthRedirect(@Req() req: any, @Res() res: Response) {
         const { token } = await this.authService.validateOAuthLogin(req.user);
+        const frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:3000';
         // Redirigir al frontend con el token
-        res.redirect(`http://localhost:3000/auth/callback?token=${token}`);
+        res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
     }
 
     @Get('twitter')
@@ -36,8 +41,9 @@ export class AuthController {
     @UseGuards(AuthGuard('twitter'))
     async twitterAuthRedirect(@Req() req: any, @Res() res: Response) {
         const { token } = await this.authService.validateOAuthLogin(req.user);
+        const frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:3000';
         // Redirigir al frontend con el token
-        res.redirect(`http://localhost:3000/auth/callback?token=${token}`);
+        res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
     }
 
     @Get('discord')
@@ -51,8 +57,9 @@ export class AuthController {
     @UseGuards(AuthGuard('discord'))
     async discordAuthRedirect(@Req() req: any, @Res() res: Response) {
         const { token } = await this.authService.validateOAuthLogin(req.user);
+        const frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:3000';
         // Redirigir al frontend con el token
-        res.redirect(`http://localhost:3000/auth/callback?token=${token}`);
+        res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
     }
 
     @Get('profile')

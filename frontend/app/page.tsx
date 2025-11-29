@@ -21,8 +21,8 @@ export default function Page({ }) {
             <ActionButton href="/validador" variant="primary" icon={ChevronRight}>
               Validar Jugador
             </ActionButton>
-            <ActionButton href="/promesas" variant="secondary" icon={Star}>
-              Ver Promesas
+            <ActionButton href="/favoritos" variant="secondary" icon={Star}>
+              Ver Favoritos
             </ActionButton>
           </div>
         </div>

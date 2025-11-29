@@ -1,4 +1,6 @@
 from pydantic_settings import BaseSettings
+from typing import List, Union
+import os
 
 
 class Settings(BaseSettings):
@@ -31,6 +33,15 @@ class Settings(BaseSettings):
     
     # JWT Configuration
     JWT_SECRET: str = ""
+    
+    # CORS Configuration
+    cors_origins: Union[str, List[str]] = "http://localhost:3000,http://localhost:8000"
+    
+    def get_cors_origins(self) -> List[str]:
+        """Parse CORS origins from string or list"""
+        if isinstance(self.cors_origins, str):
+            return [origin.strip() for origin in self.cors_origins.split(',')]
+        return self.cors_origins
     
     class Config:
         env_file = ".env"
