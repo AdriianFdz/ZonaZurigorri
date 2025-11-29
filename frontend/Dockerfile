@@ -4,6 +4,9 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Definir variable de entorno para la URL base de la API
+ARG NEXT_PUBLIC_API_BASE_URL
+
 # Instalar pnpm
 RUN npm install -g pnpm
 
