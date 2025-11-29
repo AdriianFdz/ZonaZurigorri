@@ -47,4 +47,4 @@ ENV PORT=3000
 EXPOSE 3000
 
 # Comando para ejecutar la aplicación
-CMD ["pnpm", "start"]
+CMD ["pnpm", "run", "start"]
