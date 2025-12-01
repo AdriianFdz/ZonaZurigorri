@@ -56,15 +56,6 @@ app.add_middleware(
 # Include API routes
 app.include_router(api_router, prefix=f"/api/{settings.api_version}")
 
-@app.get("/health")
-async def health_check():
-    redis_status = "connected" if redis_client.is_connected else "disconnected"
-    return {
-        "status": "healthy",
-        "redis": redis_status
-    }
-
-
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
