@@ -15,7 +15,7 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
     """Dependency to get current authenticated user from JWT token"""
     token = credentials.credentials
     try:
-        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=["HS256"])
+        payload = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
         return {
             "userId": payload.get("sub"),
             "email": payload.get("email"),
