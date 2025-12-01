@@ -44,7 +44,7 @@ services:
       dockerfile: Dockerfile
     container_name: zona-zurigorri-auth-service
     environment:
-      PORT: 5001
+      PORT: ${APP_PORT_AUTH_SERVICE:-5001}
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USERNAME: ${POSTGRES_USER:-postgres}
@@ -59,8 +59,9 @@ services:
       DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET}
       DISCORD_CALLBACK_URL: ${DISCORD_CALLBACK_URL:-http://localhost:8000/api/auth/discord/callback}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      CORS_ORIGINS: ${CORS_ORIGINS_AUTH_SERVICE}
     ports:
-      - "5001:5001"
+      - "${APP_PORT_AUTH_SERVICE:-5001}:${APP_PORT_AUTH_SERVICE:-5001}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -74,19 +75,23 @@ services:
       context: ./main-logic-service
       dockerfile: Dockerfile
     container_name: zona-zurigorri-main-logic-service
+    command: sh -c "python -m uvicorn app.main:app --host $${HOST_MAIN_LOGIC_SERVICE:-0.0.0.0} --port $${APP_PORT_MAIN_LOGIC_SERVICE:-5000}"
     environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
       DB_USERNAME: ${POSTGRES_USER:-postgres}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       DB_DATABASE: ${POSTGRES_DB:-zona_zurigorri}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_DB: 0
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_DB: ${REDIS_DB:-0}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
       JWT_SECRET: ${JWT_SECRET:-your-jwt-secret-key-change-in-production}
-      CORS_ORIGINS: http://localhost:3000,http://localhost:8000
+      CORS_ORIGINS: ${CORS_ORIGINS_MAIN_LOGIC_SERVICE}
+      HOST: "${HOST_MAIN_LOGIC_SERVICE:-0.0.0.0}"
+      APP_PORT: ${APP_PORT_MAIN_LOGIC_SERVICE:-5000}
     ports:
-      - "8001:8001"
+      - "${APP_PORT_MAIN_LOGIC_SERVICE:-5000}:${APP_PORT_MAIN_LOGIC_SERVICE:-5000}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -103,11 +108,9 @@ services:
       dockerfile: Dockerfile
     container_name: zona-zurigorri-frontend
     environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
-      NEXT_PUBLIC_AUTH_SERVICE_URL: ${NEXT_PUBLIC_AUTH_SERVICE_URL:-http://localhost:8000/api/auth}
-      NEXT_PUBLIC_MAIN_SERVICE_URL: ${NEXT_PUBLIC_MAIN_SERVICE_URL:-http://localhost:8000/api/v1}
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
     ports:
-      - "3000:3000"
+      - "${APP_PORT_FRONTEND:-3000}:${APP_PORT_FRONTEND:-3000}"
     depends_on:
       - auth-service
       - main-logic-service
@@ -133,7 +136,7 @@ services:
       - "8443:8443"  # Proxy SSL
       - "8002:8001"  # Admin API
     volumes:
-      - ./kong-gateway/kong.yml:/usr/local/kong/declarative/kong.yml:ro
+      - ./kong-gateway/kong-local.yml:/usr/local/kong/declarative/kong.yml:ro
     depends_on:
       - auth-service
       - main-logic-service

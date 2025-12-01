@@ -1,0 +1,20 @@
+_format_version: "3.0"
+_transform: true
+
+services:
+  - name: microservicio-logica-principal
+    url: http://zona-zurigorri-main-logic-service:5000
+    routes:
+      - name: microservicio-logica-principal-route
+        paths:
+          - /api/docs
+          - /openapi.json
+          - /api/v1
+        strip_path: false
+  - name: microservicio-auth
+    url: http://zona-zurigorri-auth-service:5001
+    routes:
+      - name: microservicio-auth-route
+        paths:
+          - /api/auth
+        strip_path: false
