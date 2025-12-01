@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Logo from "@/components/Logo";
 import NavLink from "@/components/NavLink";
-import { LogIn, LogOut, X, ChevronDown } from "lucide-react";
+import { LogIn, LogOut, X, ChevronDown, Menu } from "lucide-react";
 import Image from "next/image";
 import { API_BASE_URL } from '@/config';
 
@@ -19,6 +19,7 @@ export default function Header() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
+    const [showMobileMenu, setShowMobileMenu] = useState(false);
     const [user, setUser] = useState<UserProfile | null>(null);
     const pathname = usePathname();
     const isHomePage = pathname === "/";
@@ -55,7 +56,7 @@ export default function Header() {
     }, []);
 
     useEffect(() => {
-        if (showLoginModal) {
+        if (showLoginModal || showMobileMenu) {
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'unset';
@@ -64,7 +65,7 @@ export default function Header() {
         return () => {
             document.body.style.overflow = 'unset';
         };
-    }, [showLoginModal]);
+    }, [showLoginModal, showMobileMenu]);
 
     const getHeaderClasses = () => {
         if (!isHomePage) {
@@ -79,9 +80,11 @@ export default function Header() {
         <header
             className={`text-white fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${getHeaderClasses()}`}
         >
-            <div className="flex items-center justify-between p-4 mx-5">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
                 <Logo />
-                <div className="flex items-center gap-6">
+
+                {/* Desktop Navigation */}
+                <div className="hidden lg:flex items-center gap-6">
                     <ul className="flex gap-3">
                         <NavLink href="/">Inicio</NavLink>
                         <NavLink href="/validador">Validador</NavLink>
@@ -138,12 +141,73 @@ export default function Header() {
                         </button>
                     )}
                 </div>
+
+                {/* Mobile Menu Button */}
+                <button
+                    onClick={() => setShowMobileMenu(!showMobileMenu)}
+                    className="lg:hidden text-white p-1"
+                >
+                    {showMobileMenu ? <X size={24} /> : <Menu size={24} />}
+                </button>
             </div>
+
+            {/* Mobile Menu */}
+            {showMobileMenu && (
+                <div className="lg:hidden fixed inset-0 top-[68px] bg-burdeos-dark z-40 overflow-y-auto">
+                    <div className="flex flex-col p-6 space-y-4">
+                        <ul className="flex flex-col gap-2">
+                            <li onClick={() => setShowMobileMenu(false)}><NavLink href="/">Inicio</NavLink></li>
+                            <li onClick={() => setShowMobileMenu(false)}><NavLink href="/validador">Validador</NavLink></li>
+                            <li onClick={() => setShowMobileMenu(false)}><NavLink href="/favoritos">Favoritos</NavLink></li>
+                            <li onClick={() => setShowMobileMenu(false)}><NavLink href="/noticias">Noticias</NavLink></li>
+                        </ul>
+
+                        <div className="pt-4 border-t border-white/20">
+                            {user ? (
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-3 px-4 py-3 bg-white/10 rounded-lg">
+                                        {user.picture ? (
+                                            <Image src={user.picture} alt={user.name} width={40} height={40} className="w-10 h-10 rounded-full" />
+                                        ) : (
+                                            <div className="w-10 h-10 rounded-full bg-burdeos-light flex items-center justify-center text-white font-semibold">
+                                                {user.name.charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
+                                        <span className="text-white font-medium">{user.name}</span>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            localStorage.removeItem('auth_token');
+                                            setUser(null);
+                                            setShowMobileMenu(false);
+                                        }}
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors font-semibold"
+                                    >
+                                        <LogOut size={18} />
+                                        Cerrar sesión
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => {
+                                        setShowMobileMenu(false);
+                                        setShowLoginModal(true);
+                                    }}
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white text-burdeos-light font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+                                >
+                                    <LogIn size={18} />
+                                    Login
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Modal de Login */}
             {showLoginModal && (
-                <div className="fixed inset-0 backdrop-blur-md bg-black/40 flex items-center justify-center z-100" onClick={() => setShowLoginModal(false)}>
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative" onClick={(e) => e.stopPropagation()}>
+                <div className="fixed inset-0 backdrop-blur-md bg-black/40 flex items-center justify-center z-100 p-4" onClick={() => setShowLoginModal(false)}>
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8 relative" onClick={(e) => e.stopPropagation()}>
                         <button
                             onClick={() => setShowLoginModal(false)}
                             className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"

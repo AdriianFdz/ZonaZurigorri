@@ -18,7 +18,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar código fuente
 COPY ./app ./app
 
-# Exponer puerto (solo informativo)
+# Exponer puerto
 EXPOSE 5000
 
 # Comando para ejecutar la aplicación

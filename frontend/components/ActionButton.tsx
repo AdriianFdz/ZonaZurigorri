@@ -17,7 +17,7 @@ export default function ActionButton({
   children,
 }: ActionButtonProps) {
   const baseStyles =
-    "flex items-center gap-2 py-3 px-6 text-lg rounded transition-all duration-300 cursor-pointer font-semibold";
+    "flex items-center justify-center gap-2 py-2 sm:py-3 px-4 sm:px-6 text-base sm:text-lg rounded transition-all duration-300 cursor-pointer font-semibold w-full sm:w-auto";
 
   const variantStyles = {
     primary: "bg-white text-burdeos-dark hover:bg-gray-50 hover:text-burdeos-light shadow-md hover:shadow-xl",
