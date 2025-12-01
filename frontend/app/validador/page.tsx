@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search, MapPin, Calendar, CheckCircle, XCircle, Loader2, Trophy, HelpCircle, Star, MessageCircle, Trash2 } from "lucide-react";
 import { addFavorite, removeFavorite, isFavorite } from "@/lib/favoritesService";
+import { useTranslations } from "@/lib/i18n";
 import Image from "next/image";
 import { API_BASE_URL } from "@/config";
 
@@ -44,6 +45,7 @@ interface Comment {
 }
 
 function ValidadorContent() {
+    const t = useTranslations();
     const searchParams = useSearchParams();
     const [searchQuery, setSearchQuery] = useState("");
     const [suggestions, setSuggestions] = useState<PlayerSuggestion[]>([]);
@@ -184,7 +186,7 @@ function ValidadorContent() {
 
         const token = localStorage.getItem('auth_token');
         if (!token) {
-            alert('Debes iniciar sesión para comentar');
+            alert(t('validator.loginToComment'));
             return;
         }
 
@@ -245,7 +247,7 @@ function ValidadorContent() {
 
         const token = localStorage.getItem('auth_token');
         if (!token) {
-            alert('Debes iniciar sesión para gestionar favoritos');
+            alert(t('validator.loginToFavorite'));
             return;
         }
 
@@ -294,11 +296,11 @@ function ValidadorContent() {
     const getStatusText = (status: string) => {
         switch (status) {
             case "valid":
-                return "Cumple la filosofía del Athletic Club";
+                return t('validator.valid');
             case "invalid":
-                return "No cumple la filosofía del Athletic Club";
+                return t('validator.invalid');
             case "doubt":
-                return "Duda sobre si cumple la filosofía";
+                return t('validator.doubt');
             default:
                 return "";
         }
@@ -310,23 +312,22 @@ function ValidadorContent() {
                 <div className="max-w-4xl mx-auto">
                     <div className="bg-white rounded-2xl shadow-xl p-8">
                         <h2 className="text-3xl font-bold text-burdeos-dark mb-2">
-                            Validador de Filosofía
+                            {t('validator.title')}
                         </h2>
                         <p className="text-gray-600 mb-8">
-                            Introduce el nombre del jugador para validar si cumple con la
-                            filosofía del Athletic Club
+                            {t('validator.subtitle')}
                         </p>
 
                         <div className="space-y-6">
                             <div ref={searchRef} className="relative">
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Nombre del jugador
+                                    {t('validator.playerName')}
                                 </label>
                                 <div className="relative">
                                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                                     <input
                                         type="text"
-                                        placeholder="Ej: Iker Muniain, Iñaki Williams..."
+                                        placeholder={t('validator.placeholder')}
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-burdeos-light transition-colors placeholder:text-gray-400 text-gray-900"
@@ -368,11 +369,11 @@ function ValidadorContent() {
                                                     </div>
                                                     <div className="text-sm text-gray-500">
                                                         {player.current_club && player.age ? (
-                                                            <span>{player.current_club} • {player.age} años</span>
+                                                            <span>{player.current_club} • {player.age} {t('validator.years')}</span>
                                                         ) : player.current_club ? (
                                                             <span>{player.current_club}</span>
                                                         ) : player.age ? (
-                                                            <span>{player.age} años</span>
+                                                            <span>{player.age} {t('validator.years')}</span>
                                                         ) : null}
                                                     </div>
                                                 </div>
@@ -383,7 +384,7 @@ function ValidadorContent() {
 
                                 {showSuggestions && suggestions.length === 0 && !loadingSuggestions && (
                                     <div className="absolute z-10 w-full mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-lg p-4 text-center text-gray-500">
-                                        No se encontraron jugadores
+                                        {t('validator.noResults')}
                                     </div>
                                 )}
                             </div>
@@ -391,7 +392,7 @@ function ValidadorContent() {
                             {validating && (
                                 <div className="flex items-center justify-center gap-2 text-burdeos-light">
                                     <Loader2 className="w-6 h-6 animate-spin" />
-                                    <span className="font-semibold">Validando jugador...</span>
+                                    <span className="font-semibold">{t('validator.validating')}</span>
                                 </div>
                             )}
                         </div>
@@ -446,7 +447,7 @@ function ValidadorContent() {
                                                     ) : (
                                                         <Star className={`w-5 h-5 ${isInFavorites ? 'fill-burdeos-dark text-burdeos-dark' : 'text-white'}`} />
                                                     )}
-                                                    {addingFavorite ? 'Guardando...' : (isInFavorites ? 'En favoritos' : 'Agregar a favoritos')}
+                                                    {addingFavorite ? t('validator.saving') : (isInFavorites ? t('validator.inFavorites') : t('validator.addToFavorites'))}
                                                 </button>
                                             </div>
                                         </div>
@@ -460,7 +461,7 @@ function ValidadorContent() {
                                         <div className="flex items-start gap-3 p-4 bg-white rounded-lg shadow-sm">
                                             <MapPin className="w-5 h-5 text-burdeos-light mt-1 shrink-0" />
                                             <div>
-                                                <p className="font-semibold text-gray-900 text-sm">Lugar de nacimiento</p>
+                                                <p className="font-semibold text-gray-900 text-sm">{t('validator.birthPlace')}</p>
                                                 <p className="text-gray-700">{result.jugador.born_place}</p>
                                             </div>
                                         </div>
@@ -468,7 +469,7 @@ function ValidadorContent() {
                                         <div className="flex items-start gap-3 p-4 bg-white rounded-lg shadow-sm">
                                             <Calendar className="w-5 h-5 text-burdeos-light mt-1 shrink-0" />
                                             <div>
-                                                <p className="font-semibold text-gray-900 text-sm">Fecha de nacimiento</p>
+                                                <p className="font-semibold text-gray-900 text-sm">{t('validator.birthDate')}</p>
                                                 <p className="text-gray-700">{result.jugador.birth_date}</p>
                                             </div>
                                         </div>
@@ -477,7 +478,7 @@ function ValidadorContent() {
                                     {/* Razón */}
                                     <div className="p-5 bg-white rounded-lg shadow-sm border-l-4 border-burdeos-light">
                                         <p className="font-bold text-gray-900 mb-2">
-                                            {result.status === "valid" ? "¿Por qué cumple?" : result.status === "invalid" ? "¿Por qué no cumple?" : "Motivo de la duda"}
+                                            {result.status === "valid" ? t('validator.whyValid') : result.status === "invalid" ? t('validator.whyInvalid') : t('validator.whyDoubt')}
                                         </p>
                                         <p className="text-gray-700 leading-relaxed">{result.reason}</p>
                                     </div>
@@ -487,7 +488,7 @@ function ValidadorContent() {
                                         <div>
                                             <p className="font-bold text-gray-900 mb-4 flex items-center gap-2 text-lg">
                                                 <Trophy className="w-5 h-5 text-burdeos-light" />
-                                                Trayectoria en clubes
+                                                {t('validator.career')}
                                             </p>
                                             <div className="relative">
                                                 {/* Línea vertical del timeline */}
@@ -510,7 +511,7 @@ function ValidadorContent() {
                                                                     {club.club.name}
                                                                 </p>
                                                                 <p className="text-sm text-gray-600 mt-1">
-                                                                    {club.seasons} {club.seasons === 1 ? 'temporada' : 'temporadas'}
+                                                                    {club.seasons} {club.seasons === 1 ? t('validator.season') : t('validator.seasons')}
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -524,7 +525,7 @@ function ValidadorContent() {
                                     <div className="border-t border-gray-200 pt-6">
                                         <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2 text-lg">
                                             <MessageCircle className="w-5 h-5 text-burdeos-light" />
-                                            Comentarios ({comments.length})
+                                            {t('comments.title')} ({comments.length})
                                         </h3>
 
                                         {/* Formulario para nuevo comentario */}
@@ -532,7 +533,7 @@ function ValidadorContent() {
                                             <textarea
                                                 value={newComment}
                                                 onChange={(e) => setNewComment(e.target.value)}
-                                                placeholder="Escribe tu opinión sobre este jugador..."
+                                                placeholder={t('comments.placeholder')}
                                                 className="w-full p-3 border text-gray-900 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-burdeos-light resize-none"
                                                 rows={3}
                                             />
@@ -541,7 +542,7 @@ function ValidadorContent() {
                                                 disabled={submittingComment || !newComment.trim()}
                                                 className="mt-2 px-4 py-2 bg-burdeos-dark text-white rounded-lg hover:bg-burdeos-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
-                                                {submittingComment ? 'Enviando...' : 'Comentar'}
+                                                {submittingComment ? t('comments.submitting') : t('comments.submit')}
                                             </button>
                                         </div>
 
@@ -553,7 +554,7 @@ function ValidadorContent() {
                                                 </div>
                                             ) : comments.length === 0 ? (
                                                 <p className="text-gray-600 text-center py-8">
-                                                    No hay comentarios aún. ¡Sé el primero en comentar!
+                                                    {t('comments.noComments')}
                                                 </p>
                                             ) : (
                                                 comments.map((comment) => (
@@ -600,7 +601,7 @@ function ValidadorContent() {
                                                                                         <button
                                                                                             onClick={() => handleDeleteComment(comment.id)}
                                                                                             className="text-red-500 hover:text-red-700 transition-colors"
-                                                                                            title="Eliminar comentario"
+                                                                                            title={t('common.delete')}
                                                                                         >
                                                                                             <Trash2 className="w-4 h-4" />
                                                                                         </button>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
+import { useTranslations } from "@/lib/i18n";
 import { API_BASE_URL } from "@/config";
 
 interface Article {
@@ -22,6 +23,7 @@ interface NewsResponse {
 }
 
 export default function Page() {
+    const t = useTranslations();
     const [articles, setArticles] = useState<Article[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -101,17 +103,17 @@ export default function Page() {
                 <div className="max-w-6xl mx-auto">
                     <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
                         <h2 className="text-3xl font-bold text-burdeos-dark mb-2">
-                            Noticias Athletic
+                            {t('news.title')}
                         </h2>
                         <p className="text-gray-600 mb-6">
-                            Las últimas novedades del club desde El Correo
+                            {t('news.subtitle')}
                         </p>
 
                         {/* Filtros */}
                         <div className="flex flex-wrap gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
                             <div className="flex-1 min-w-[200px]">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Fecha inicio
+                                    {t('news.startDate')}
                                 </label>
                                 <input
                                     type="date"
@@ -122,7 +124,7 @@ export default function Page() {
                             </div>
                             <div className="flex-1 min-w-[200px]">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Fecha fin
+                                    {t('news.endDate')}
                                 </label>
                                 <input
                                     type="date"
@@ -136,7 +138,7 @@ export default function Page() {
                                         onClick={resetFilters}
                                         className="h-[42px] px-4 text-sm font-medium text-burdeos-dark border border-burdeos-light rounded-lg hover:bg-burdeos-light hover:text-white transition-all whitespace-nowrap"
                                     >
-                                        Limpiar filtros
+                                        {t('news.clearFilters')}
                                     </button>
                                 </div>
                             )}
@@ -153,14 +155,14 @@ export default function Page() {
                         {loading && articles.length === 0 && (
                             <div className="text-center py-12">
                                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-burdeos-light border-t-burdeos-dark"></div>
-                                <p className="mt-4 text-gray-600">Cargando noticias...</p>
+                                <p className="mt-4 text-gray-600">{t('news.loading')}</p>
                             </div>
                         )}
 
                         {/* Noticias */}
                         {!loading && articles.length === 0 && !error && (
                             <div className="text-center py-12 text-gray-500">
-                                No se encontraron noticias
+                                {t('news.noNews')}
                             </div>
                         )}
 
@@ -222,14 +224,14 @@ export default function Page() {
                                 disabled={loading}
                                 className="w-full mt-6 py-3 border-2 border-burdeos-light rounded-lg font-semibold text-burdeos-dark hover:bg-burdeos-light hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {loading ? "Cargando..." : "Cargar más noticias"}
+                                {loading ? t('common.loading') : t('news.loadMore')}
                             </button>
                         )}
 
                         {/* Fin de noticias */}
                         {!hasMore && articles.length > 0 && (
                             <p className="text-center text-gray-500 mt-6">
-                                No hay más noticias disponibles
+                                {t('news.noMoreNews')}
                             </p>
                         )}
                     </div>
