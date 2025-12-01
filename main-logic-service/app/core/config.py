@@ -25,14 +25,14 @@ class Settings(BaseSettings):
     news_cache_ttl: int = 3600  # 1 hour in seconds
     
     # PostgreSQL Configuration
-    DB_HOST: str = "localhost"
-    DB_PORT: int = 5432
-    DB_USERNAME: str = "postgres"
-    DB_PASSWORD: str = "postgres"
-    DB_DATABASE: str = "auth_db"
+    db_host: str = "localhost"
+    db_port: int = 5432
+    db_username: str = "postgres"
+    db_password: str = "postgres"
+    db_database: str = "ZonaZurigorri"
     
     # JWT Configuration
-    JWT_SECRET: str = ""
+    jwt_secret: str = ""
     
     # CORS Configuration
     cors_origins: Union[str, List[str]] = "http://localhost:3000,http://localhost:8000"
