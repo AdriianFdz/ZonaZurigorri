@@ -1,0 +1,126 @@
+{
+    "nav": {
+        "home": "Inicio",
+        "news": "Noticias",
+        "validator": "Validador",
+        "favorites": "Favoritos",
+        "login": "Iniciar Sesión",
+        "logout": "Cerrar Sesión"
+    },
+    "home": {
+        "hero": {
+            "title": "La filosofía del Athletic Club,",
+            "subtitle": "Tu espacio para todo lo relacionado con el Athletic Club",
+            "description": "Verifica jugadores, descubre promesas y mantente al día con el Athletic Club.",
+            "newsButton": "Ver Noticias",
+            "validatorButton": "Validar Jugador"
+        },
+        "philosophy": {
+            "title": "Nuestra Filosofía",
+            "cantera": {
+                "title": "Cantera",
+                "description": "Formamos jugadores desde la base, comprometidos con los valores del club"
+            },
+            "basque": {
+                "title": "Vasco",
+                "description": "Mantenemos nuestra identidad con jugadores de Euskal Herria"
+            },
+            "values": {
+                "title": "Valores",
+                "description": "Respeto, trabajo y compromiso definen nuestro estilo"
+            }
+        },
+        "palmares": {
+            "title": "Palmarés",
+            "leagues": "Ligas",
+            "cups": "Copas",
+            "superCups": "Supercopas"
+        }
+    },
+    "news": {
+        "title": "Noticias del Athletic",
+        "subtitle": "Las últimas novedades del club desde El Correo",
+        "loadMore": "Cargar más noticias",
+        "noNews": "No se encontraron noticias",
+        "noMoreNews": "No hay más noticias disponibles",
+        "filterByDate": "Filtrar por fecha",
+        "startDate": "Fecha inicio",
+        "endDate": "Fecha fin",
+        "clearFilters": "Limpiar filtros",
+        "loading": "Cargando noticias...",
+        "apply": "Aplicar",
+        "readMore": "Leer más",
+        "author": "Autor",
+        "published": "Publicado"
+    },
+    "validator": {
+        "title": "Validador de Filosofía",
+        "subtitle": "Introduce el nombre del jugador para validar si cumple con la filosofía del Athletic Club",
+        "playerName": "Nombre del jugador",
+        "placeholder": "Ej: Iker Muniain, Iñaki Williams...",
+        "validating": "Validando jugador...",
+        "noResults": "No se encontraron jugadores",
+        "valid": "Cumple la filosofía del Athletic Club",
+        "invalid": "No cumple la filosofía del Athletic Club",
+        "doubt": "Duda sobre si cumple la filosofía",
+        "birthPlace": "Lugar de nacimiento",
+        "birthDate": "Fecha de nacimiento",
+        "whyValid": "¿Por qué cumple?",
+        "whyInvalid": "¿Por qué no cumple?",
+        "whyDoubt": "Motivo de la duda",
+        "career": "Trayectoria en clubes",
+        "trajectory": "Trayectoria en clubes",
+        "seasons": "temporadas",
+        "season": "temporada",
+        "addToFavorites": "Agregar a favoritos",
+        "inFavorites": "En favoritos",
+        "saving": "Guardando...",
+        "loginToComment": "Debes iniciar sesión para comentar",
+        "loginToFavorite": "Debes iniciar sesión para agregar a favoritos",
+        "years": "años"
+    },
+    "favorites": {
+        "title": "Mis Favoritos",
+        "subtitle": "Gestiona tu lista de jugadores favoritos",
+        "noFavorites": "No tienes favoritos aún",
+        "emptyMessage": "Busca jugadores en el validador y agrégalos a favoritos para guardarlos aquí",
+        "goToValidator": "Ir al Validador",
+        "viewDetails": "Ver detalles",
+        "remove": "Eliminar",
+        "authRequired": "Autenticación Requerida",
+        "loginMessage": "Debes iniciar sesión para acceder a tu lista de favoritos",
+        "oauthMessage": "Inicia sesión con Google o Discord para guardar y gestionar tus jugadores favoritos",
+        "continueWithGoogle": "Continuar con Google",
+        "continueWithDiscord": "Continuar con Discord",
+        "loading": "Cargando favoritos..."
+    },
+    "comments": {
+        "title": "Comentarios",
+        "placeholder": "Escribe tu opinión sobre este jugador...",
+        "submit": "Comentar",
+        "submitting": "Enviando...",
+        "noComments": "No hay comentarios aún. ¡Sé el primero en comentar!",
+        "loginRequired": "Debes iniciar sesión para comentar",
+        "delete": "Eliminar comentario"
+    },
+    "login": {
+        "welcome": "Bienvenido",
+        "subtitle": "Inicia sesión en Zona Zurigorri",
+        "continueWithGoogle": "Continuar con Google",
+        "continueWithDiscord": "Continuar con Discord",
+        "authenticating": "Autenticando...",
+        "termsPrefix": "Al continuar, aceptas nuestros",
+        "terms": "Términos de Servicio",
+        "and": "y",
+        "privacy": "Política de Privacidad"
+    },
+    "common": {
+        "loading": "Cargando...",
+        "error": "Error",
+        "save": "Guardar",
+        "cancel": "Cancelar",
+        "delete": "Eliminar",
+        "edit": "Editar",
+        "search": "Buscar"
+    }
+}

@@ -1,0 +1,126 @@
+{
+    "nav": {
+        "home": "Home",
+        "news": "News",
+        "validator": "Validator",
+        "favorites": "Favorites",
+        "login": "Login",
+        "logout": "Logout"
+    },
+    "home": {
+        "hero": {
+            "title": "Athletic Club's philosophy,",
+            "subtitle": "Your space for everything related to Athletic Club",
+            "description": "Verify players, discover prospects and stay up to date with Athletic Club.",
+            "newsButton": "View News",
+            "validatorButton": "Validate Player"
+        },
+        "philosophy": {
+            "title": "Our Philosophy",
+            "cantera": {
+                "title": "Youth Academy",
+                "description": "We train players from the base, committed to the club's values"
+            },
+            "basque": {
+                "title": "Basque",
+                "description": "We maintain our identity with players from Euskal Herria"
+            },
+            "values": {
+                "title": "Values",
+                "description": "Respect, work and commitment define our style"
+            }
+        },
+        "palmares": {
+            "title": "Honours",
+            "leagues": "Leagues",
+            "cups": "Cups",
+            "superCups": "Super Cups"
+        }
+    },
+    "news": {
+        "title": "Athletic News",
+        "subtitle": "Latest club news from El Correo",
+        "loadMore": "Load more news",
+        "noNews": "No news found",
+        "noMoreNews": "No more news available",
+        "filterByDate": "Filter by date",
+        "startDate": "Start date",
+        "endDate": "End date",
+        "clearFilters": "Clear filters",
+        "loading": "Loading news...",
+        "apply": "Apply",
+        "readMore": "Read more",
+        "author": "Author",
+        "published": "Published"
+    },
+    "validator": {
+        "title": "Philosophy Validator",
+        "subtitle": "Enter the player's name to validate if they meet Athletic Club's philosophy",
+        "playerName": "Player name",
+        "placeholder": "E.g: Iker Muniain, Iñaki Williams...",
+        "validating": "Validating player...",
+        "noResults": "No players found",
+        "valid": "Meets Athletic Club's philosophy",
+        "invalid": "Does not meet Athletic Club's philosophy",
+        "doubt": "Doubt about whether it meets the philosophy",
+        "birthPlace": "Place of birth",
+        "birthDate": "Date of birth",
+        "whyValid": "Why does it comply?",
+        "whyInvalid": "Why doesn't it comply?",
+        "whyDoubt": "Reason for doubt",
+        "career": "Club career",
+        "trajectory": "Club career",
+        "seasons": "seasons",
+        "season": "season",
+        "addToFavorites": "Add to favorites",
+        "inFavorites": "In favorites",
+        "saving": "Saving...",
+        "loginToComment": "You must log in to comment",
+        "loginToFavorite": "You must log in to add to favorites",
+        "years": "years"
+    },
+    "favorites": {
+        "title": "My Favorites",
+        "subtitle": "Manage your list of favorite players",
+        "noFavorites": "You don't have favorites yet",
+        "emptyMessage": "Search for players in the validator and add them to favorites to save them here",
+        "goToValidator": "Go to Validator",
+        "viewDetails": "View details",
+        "remove": "Remove",
+        "authRequired": "Authentication Required",
+        "loginMessage": "You must log in to access your favorites list",
+        "oauthMessage": "Log in with Google or Discord to save and manage your favorite players",
+        "continueWithGoogle": "Continue with Google",
+        "continueWithDiscord": "Continue with Discord",
+        "loading": "Loading favorites..."
+    },
+    "comments": {
+        "title": "Comments",
+        "placeholder": "Write your opinion about this player...",
+        "submit": "Comment",
+        "submitting": "Sending...",
+        "noComments": "No comments yet. Be the first to comment!",
+        "loginRequired": "You must log in to comment",
+        "delete": "Delete comment"
+    },
+    "login": {
+        "welcome": "Welcome",
+        "subtitle": "Sign in to Zona Zurigorri",
+        "continueWithGoogle": "Continue with Google",
+        "continueWithDiscord": "Continue with Discord",
+        "authenticating": "Authenticating...",
+        "termsPrefix": "By continuing, you accept our",
+        "terms": "Terms of Service",
+        "and": "and",
+        "privacy": "Privacy Policy"
+    },
+    "common": {
+        "loading": "Loading...",
+        "error": "Error",
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "edit": "Edit",
+        "search": "Search"
+    }
+}
