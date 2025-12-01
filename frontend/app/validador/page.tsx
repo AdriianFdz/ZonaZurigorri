@@ -540,7 +540,7 @@ function ValidadorContent() {
                                             <button
                                                 onClick={handleSubmitComment}
                                                 disabled={submittingComment || !newComment.trim()}
-                                                className="mt-2 px-4 py-2 bg-burdeos-dark text-white rounded-lg hover:bg-burdeos-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="mt-2 px-4 py-2 bg-burdeos-dark text-white rounded-lg hover:bg-burdeos-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                                             >
                                                 {submittingComment ? t('comments.submitting') : t('comments.submit')}
                                             </button>
@@ -600,7 +600,7 @@ function ValidadorContent() {
                                                                                     return (
                                                                                         <button
                                                                                             onClick={() => handleDeleteComment(comment.id)}
-                                                                                            className="text-red-500 hover:text-red-700 transition-colors"
+                                                                                            className="text-red-500 hover:text-red-700 transition-colors cursor-pointer"
                                                                                             title={t('common.delete')}
                                                                                         >
                                                                                             <Trash2 className="w-4 h-4" />

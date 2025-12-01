@@ -119,7 +119,7 @@ export default function Page() {
                                     type="date"
                                     value={startDate}
                                     onChange={(e) => setStartDate(e.target.value)}
-                                    className="w-full px-3 py-2 border-2 border-gray-400 rounded-lg focus:outline-none focus:border-burdeos-light transition-colors placeholder:text-gray-400 text-gray-300"
+                                    className="w-full px-3 py-2 border-2 border-gray-400 rounded-lg focus:outline-none focus:border-burdeos-light transition-colors placeholder:text-gray-400 text-gray-300 cursor-pointer"
                                 />
                             </div>
                             <div className="flex-1 min-w-[200px]">
@@ -130,7 +130,7 @@ export default function Page() {
                                     type="date"
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
-                                    className="w-full px-3 py-2 border-2 border-gray-400 rounded-lg focus:outline-none focus:border-burdeos-light transition-colors placeholder:text-gray-400 text-gray-300" />
+                                    className="w-full px-3 py-2 border-2 border-gray-400 rounded-lg focus:outline-none focus:border-burdeos-light transition-colors placeholder:text-gray-400 text-gray-300 cursor-pointer" />
                             </div>
                             {(startDate || endDate) && (
                                 <div className="flex items-end">
