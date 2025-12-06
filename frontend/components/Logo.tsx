@@ -5,7 +5,7 @@ export default function Logo() {
         <div className="flex items-center gap-3">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white flex items-center justify-center shadow-md pt-0.5">
                 <Image
-                    src="/logo.svg"
+                    src="/logo.webp"
                     alt="Zona Zurigorri Logo"
                     width={32}
                     height={32}
