@@ -37,7 +37,7 @@ export default function Page({ }) {
         <h2 className="text-2xl sm:text-3xl font-bold mb-3 text-burdeos-dark px-4">{t('home.philosophy.title')}</h2>
         <p className="mb-8 text-sm sm:text-base text-gray-600 max-w-3xl mx-auto px-4">{t('home.philosophy.cantera.description')}</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto px-4 pb-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto px-4">
           <TarjetaNorma
             icono={Heart}
             titulo="Euskal Herria"
