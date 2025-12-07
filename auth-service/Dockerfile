@@ -37,6 +37,12 @@ RUN pnpm install --prod
 # Copiar build desde el stage anterior
 COPY --from=builder /app/dist ./dist
 
+# Copiar código fuente (src, test, jest.config.js) para ejecutar tests
+COPY src ./src
+COPY test ./test
+COPY jest.config.js ./
+COPY tsconfig.json ./
+
 # Exponer puerto
 EXPOSE 5001
 
