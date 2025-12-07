@@ -15,6 +15,24 @@ const translations = {
   en: enTranslations,
 };
 
+export const metadata = {
+  title: 'Zona Zurigorri - Validador de Filosofía Athletic Club',
+  description: 'Aplicación web para validar jugadores según la filosofía del Athletic Club de Bilbao. Descubre si un futbolista cumple con los criterios de nacimiento y formación en territorio vasco.',
+  keywords: 'Athletic Club, Bilbao, filosofía Athletic, jugadores vascos, validador, País Vasco, Euskadi',
+  authors: [{ name: 'Zona Zurigorri' }],
+  openGraph: {
+    title: 'Zona Zurigorri - Validador de Filosofía Athletic Club',
+    description: 'Valida jugadores según la filosofía única del Athletic Club',
+    type: 'website',
+    locale: 'es_ES',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Zona Zurigorri',
+    description: 'Validador de filosofía del Athletic Club de Bilbao',
+  },
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -32,6 +50,18 @@ export default function RootLayout({
 
   return (
     <html lang={locale}>
+      <head>
+        <title>{metadata.title}</title>
+        <meta name="description" content={metadata.description} />
+        <meta name="keywords" content={metadata.keywords} />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta property="og:title" content={metadata.openGraph.title} />
+        <meta property="og:description" content={metadata.openGraph.description} />
+        <meta property="og:type" content={metadata.openGraph.type} />
+        <meta name="twitter:card" content={metadata.twitter.card} />
+        <meta name="twitter:title" content={metadata.twitter.title} />
+        <meta name="twitter:description" content={metadata.twitter.description} />
+      </head>
       <body>
         <LocaleProvider locale={locale} translations={translations[locale as keyof typeof translations]}>
           <Header />
