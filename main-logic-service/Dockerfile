@@ -18,6 +18,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar código fuente
 COPY ./app ./app
 
+# Copiar tests y configuración de pytest
+COPY ./tests ./tests
+COPY pytest.ini .
+
 # Exponer puerto
 EXPOSE 5000
 
