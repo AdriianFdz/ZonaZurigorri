@@ -256,13 +256,13 @@ export default function Header() {
 
                         <div className="mt-8 text-center">
                             <p className="text-xs text-gray-500">
-                                {t('login.termsPrefix')}{' '}
-                                <a href="#" className="text-red-600 hover:text-red-700 font-medium">
-                                    {t('login.terms')}
+                                Al iniciar sesión, aceptas nuestros{' '}
+                                <a href="/terminos" className="text-burdeos-dark hover:underline font-medium">
+                                    Términos de Servicio
                                 </a>{' '}
-                                {t('login.and')}{' '}
-                                <a href="#" className="text-red-600 hover:text-red-700 font-medium">
-                                    {t('login.privacy')}
+                                y{' '}
+                                <a href="/privacidad" className="text-burdeos-dark hover:underline font-medium">
+                                    Política de Privacidad
                                 </a>
                             </p>
                         </div>

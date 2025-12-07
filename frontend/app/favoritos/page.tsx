@@ -124,6 +124,19 @@ export default function FavoritosPage() {
                                         {t('favorites.continueWithDiscord')}
                                     </a>
                                 </div>
+
+                                <div className="mt-6 pt-6 border-t border-gray-200">
+                                    <p className="text-xs text-gray-500 text-center">
+                                        Al iniciar sesión, aceptas nuestros{' '}
+                                        <a href="/terminos" className="text-burdeos-dark hover:underline font-medium">
+                                            Términos de Servicio
+                                        </a>
+                                        {' '}y{' '}
+                                        <a href="/privacidad" className="text-burdeos-dark hover:underline font-medium">
+                                            Política de Privacidad
+                                        </a>
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
