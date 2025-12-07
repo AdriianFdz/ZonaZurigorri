@@ -491,6 +491,7 @@ function ValidadorContent() {
                                                 {t('validator.career')}
                                             </p>
                                             <div className="relative">
+                                                <div className="absolute left-6 top-3 bottom-3 w-0.5 bg-burdeos-light/30"></div>
                                                 <div className="space-y-4">
                                                     {result.jugador.clubs.map((club, idx) => (
                                                         <div
