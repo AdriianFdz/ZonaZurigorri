@@ -345,8 +345,13 @@ zona-zurigorri/
 
 Una vez levantados los servicios, puedes acceder a:
 
-- **FastAPI Docs (Swagger)**: http://localhost:8000/api/docs
-- **OpenAPI JSON**: http://localhost:8000/openapi.json
+- **Main Logic Service**:
+  - Swagger UI: http://localhost:8000/api/docs
+  - OpenAPI JSON: http://localhost:8000/openapi.json
+
+- **Auth Service**:
+  - Swagger UI: http://localhost:8000/api/auth/docs
+  - OpenAPI JSON: http://localhost:8000/api/auth/docs-json
 
 ---
 
