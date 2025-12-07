@@ -46,7 +46,7 @@ export default function TerminosPage() {
                             </h2>
                             <p className="mb-3">
                                 Para acceder a funciones como favoritos y comentarios, debes autenticarte mediante
-                                proveedores OAuth (Google, Discord). Al registrarte, garantizas que:
+                                proveedores OAuth (Google, Discord). Al registrarte, te comprometes a que:
                             </p>
                             <ul className="list-disc list-inside space-y-2 ml-4">
                                 <li>Toda la información proporcionada es precisa y verdadera</li>
