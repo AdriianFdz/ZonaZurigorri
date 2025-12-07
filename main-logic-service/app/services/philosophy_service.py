@@ -26,15 +26,14 @@ class PhilosophyService:
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
     }
     
-    # Territorios válidos según la filosofía del Athletic (solo en español)
     VALID_TERRITORIES = {
         'Vizcaya': ['vizcaya', 'bizkaia'],
         'Guipúzcoa': ['guipuzcoa', 'guipúzcoa', 'gipuzkoa'],
         'Álava': ['alava', 'álava', 'araba'],
+        'Baja Navarra': ['baja navarra', 'nafarroa behera'],
         'Navarra': ['navarra', 'nafarroa', 'comunidad foral de navarra'],
         'Labort': ['labort', 'lapurdi', 'pirineos atlanticos', 'pyrénées-atlantiques', 'pyrenees-atlantiques'],
-        'Sola': ['sola', 'zuberoa'],
-        'Baja Navarra': ['baja navarra', 'nafarroa behera']
+        'Sola': ['sola', 'zuberoa']
     }
     
     def _validate_territory(self, state: str) -> tuple[bool, Optional[str]]:
@@ -50,7 +49,6 @@ class PhilosophyService:
         if not state:
             return (False, None)
         
-        # Normalizar: quitar mayúsculas, tildes y espacios extra
         state_normalized = state.lower().strip()
         
         for territory, variants in self.VALID_TERRITORIES.items():
@@ -146,17 +144,13 @@ class PhilosophyService:
         """
         loop = asyncio.get_event_loop()
         try:
-            # P625 = coordinate location
             coords = await loop.run_in_executor(None, lambda: entity.get(self.wikidata_client.get('P625')))
             if coords:
-                # coords es un objeto con latitude y longitude
                 latitude = coords.latitude
                 longitude = coords.longitude
-                print(f"DEBUG - Coordenadas extraídas: lat={latitude}, lon={longitude}")
                 return (latitude, longitude)
             return None
         except Exception as e:
-            print(f"DEBUG - Error extrayendo coordenadas: {str(e)}")
             return None
     
     async def _extract_teams(self, entity) -> list[Dict[str, Any]]:
@@ -173,8 +167,6 @@ class PhilosophyService:
         teams = []
         
         try:
-            # P54 = member of sports team
-            # Necesitamos acceder a los claims directamente para obtener los qualifiers
             entity_dict = await loop.run_in_executor(None, lambda: entity.data)
             claims = entity_dict.get('claims', {})
             team_claims = claims.get('P54', [])
@@ -183,11 +175,9 @@ class PhilosophyService:
                 try:
                     team_info = {}
                     
-                    # ID del club
                     team_info['id'] = claim['mainsnak']['datavalue']['value']['id']
-                    team_info['entity'] = None  # Se cargará después si es necesario
+                    team_info['entity'] = None
                     
-                    # Fecha de inicio (P580)
                     qualifiers = claim.get('qualifiers', {})
                     start_date_claims = qualifiers.get('P580', [])
                     if start_date_claims:
@@ -196,7 +186,6 @@ class PhilosophyService:
                     else:
                         team_info['start_date'] = None
                     
-                    # Fecha de fin (P582)
                     end_date_claims = qualifiers.get('P582', [])
                     if end_date_claims:
                         end_time = end_date_claims[0]['datavalue']['value']['time']
@@ -204,13 +193,11 @@ class PhilosophyService:
                     else:
                         team_info['end_date'] = None
                     
-                    print(f"DEBUG - Extrayendo equipo {team_info['id']}: start={team_info['start_date']}, end={team_info['end_date']}")
                     teams.append(team_info)
                 except Exception as e:
-                    print(f"DEBUG - Error extrayendo club: {str(e)}")
                     continue
         except Exception as e:
-            print(f"DEBUG - Error en _extract_teams: {str(e)}")
+            pass
         
         return teams
     
@@ -254,14 +241,11 @@ class PhilosophyService:
         Returns:
             Lista de ClubSeasons con cada periodo ordenado por fecha
         """
-        # Función para normalizar fechas a formato YYYY-MM-DD
         def normalize_date(date_str):
             if not date_str:
                 return '0000-00-00'
             try:
-                # Eliminar el signo + si existe y tomar solo la fecha
                 date_str = date_str.replace('+', '')
-                # Asegurar formato completo
                 parts = date_str.split('-')
                 if len(parts) == 1:
                     return f"{parts[0]}-00-00"
@@ -276,26 +260,13 @@ class PhilosophyService:
             start_date = normalize_date(team_info.get('start_date'))
             end_date = normalize_date(team_info.get('end_date'))
             
-            # Si no hay fecha de fin, usar fecha muy lejana para que vaya primero (actual)
             if end_date == '0000-00-00':
                 end_date = '9999-99-99'
             
-            # Ordenar por: start_date DESC, end_date DESC
-            # Esto asegura que si dos periodos empiezan en el mismo año,
-            # el que termina más tarde (o no termina) va primero
             return (start_date, end_date)
         
-        # Ordenar todos los periodos por fecha de inicio (más reciente primero)
         sorted_teams = sorted(teams, key=get_sort_key, reverse=True)
         
-        # Debug: mostrar orden de fechas
-        print("DEBUG - Orden de periodos por fecha:")
-        for t in sorted_teams:
-            start = normalize_date(t.get('start_date'))
-            end = t.get('end_date', 'None')
-            print(f"  - {t.get('id')} | start: {start} | end: {end}")
-        
-        # Procesar cada periodo por separado sin agrupar
         result = []
         
         for team_info in sorted_teams:
@@ -304,13 +275,11 @@ class PhilosophyService:
                 club_entity = await self._get_wikidata_entity(club_id)
                 club_name = await self._get_entity_label(club_entity)
                 
-                # Calcular temporadas de este periodo específico
                 seasons = self._calculate_seasons(
                     team_info.get('start_date'),
                     team_info.get('end_date')
                 )
                 
-                # Crear entrada para este periodo
                 club = ClubDTO(
                     id=club_id,
                     name=club_name
@@ -321,11 +290,8 @@ class PhilosophyService:
                     seasons=seasons,
                     first_start=normalize_date(team_info.get('start_date'))
                 ))
-                    
-                print(f"DEBUG - Club: {club_name} (ID: {club_id}), temporadas este periodo: {seasons}")
                 
             except Exception as e:
-                print(f"DEBUG - Error procesando club {team_info.get('id')}: {str(e)}")
                 continue
         
         return result
@@ -352,63 +318,43 @@ class PhilosophyService:
             # Obtener nombre del club
             club_name = await self._get_entity_label(club_entity)
             
-            # Obtener coordenadas del club (P625)
             coordinates = await self._extract_coordinates(club_entity)
             
-            # Si no tiene coordenadas directas, intentar obtener de la sede (P159)
             if not coordinates:
-                print(f"DEBUG - Club {club_id} ({club_name}) no tiene coordenadas directas, intentando obtener de sede (P159)")
                 loop = asyncio.get_event_loop()
                 try:
-                    # P159 = headquarters location
                     headquarters = await loop.run_in_executor(None, lambda: club_entity.get(self.wikidata_client.get('P159')))
                     if headquarters:
-                        # Obtener coordenadas de la sede
                         coordinates = await self._extract_coordinates(headquarters)
-                        if coordinates:
-                            print(f"DEBUG - Coordenadas obtenidas desde sede: {coordinates}")
                 except Exception as e:
-                    print(f"DEBUG - Error obteniendo sede: {str(e)}")
+                    pass
             
             if not coordinates:
-                print(f"DEBUG - Club {club_id} ({club_name}) no tiene coordenadas ni en P625 ni en P159")
                 return (False, None, club_name)
             
             lat, lon = coordinates
-            print(f"DEBUG - Coordenadas del club {club_id} ({club_name}): lat={lat}, lon={lon}")
             
-            # Consultar OpenStreetMap
             osm_data = await self._get_location_details_from_osm(http_client, lat, lon)
             
             if not osm_data:
-                print(f"DEBUG - OSM no devolvió datos para {club_id}")
                 return (False, None, club_name)
             
             address = osm_data.get('address', {})
             
-            # Buscar el campo más específico disponible
             subdivision = address.get('subdivision', '')
             province = address.get('province', '')
             county = address.get('county', '')
             state = address.get('state', '')
             
             location_to_check = subdivision or province or county or state
-            print(f"DEBUG - OSM Address para club {club_id}: {address}")
-            print(f"DEBUG - Location to check: '{location_to_check}'")
             
-            # Validar si el territorio cumple la filosofía
             is_valid, territory = self._validate_territory(location_to_check)
-            print(f"DEBUG - Validación club {club_id} ({club_name}): is_valid={is_valid}, territory={territory}")
             
             return (is_valid, territory, club_name)
             
         except httpx.HTTPStatusError as e:
-            print(f"Error HTTP al verificar club {club_id}: {e.response.status_code} - {e.response.text}")
             return (False, None, None)
         except Exception as e:
-            import traceback
-            print(f"Error al verificar ubicación del club {club_id}: {type(e).__name__}: {str(e)}")
-            print(f"Traceback: {traceback.format_exc()}")
             return (False, None, None)
     
     def _calculate_age_at_date(self, birth_date_str: str, target_date_str: str) -> Optional[int]:
@@ -430,13 +376,8 @@ class PhilosophyService:
             birth_year = int(birth_date_str.split('-')[0])
             target_year = int(target_date_str.split('-')[0])
             
-            # Si la fecha objetivo es parcial (solo año: YYYY-00-00)
             if target_date_str.endswith('-00-00') or target_date_str.endswith('-00'):
-                # Calcular edad aproximada al final del año
-                # Usamos el año completo para ser conservadores
                 age = target_year - birth_year
-                
-                print(f"DEBUG - Fecha parcial detectada: {target_date_str}, edad aproximada: {age} años")
                 return age
             
             # Si tenemos fechas completas, calcular con precisión
@@ -451,7 +392,6 @@ class PhilosophyService:
             
             return age
         except Exception as e:
-            print(f"DEBUG - Error al calcular edad: birth='{birth_date_str}', target='{target_date_str}', error={str(e)}")
             return None
     
     async def _get_location_details_from_osm(
@@ -491,14 +431,11 @@ class PhilosophyService:
                 return response.json()
             except httpx.ReadTimeout:
                 if attempt < max_retries - 1:
-                    wait_time = (attempt + 1) * 2  # Espera incremental: 2s, 4s, 6s
-                    print(f"DEBUG - Timeout en OSM, reintentando en {wait_time}s... (intento {attempt + 1}/{max_retries})")
+                    wait_time = (attempt + 1) * 2
                     await asyncio.sleep(wait_time)
                 else:
-                    print(f"DEBUG - Timeout final en OSM después de {max_retries} intentos")
                     raise
             except Exception as e:
-                print(f"DEBUG - Error en OSM: {type(e).__name__}: {str(e)}")
                 raise
     
     async def validate_philosophy_by_id(
@@ -517,12 +454,10 @@ class PhilosophyService:
         from app.core.redis_client import redis_client
         import json
         
-        # Intentar obtener del caché
         cache_key = f"player_validation:{player_id}"
         if redis_client.is_connected:
             cached_result = redis_client.get(cache_key)
             if cached_result:
-                print(f"DEBUG - Resultado obtenido del caché para {player_id}")
                 return PhilosophyValidationResponse(**cached_result)
         
         try:
@@ -561,41 +496,25 @@ class PhilosophyService:
                 if birth_place_entity:
                     coordinates = await self._extract_coordinates(birth_place_entity)
                 
-                status = "invalid"  # Por defecto: no cumple
+                status = "invalid"
                 validation_reason = "No se pudo validar"
                 territory = None
                 
                 if coordinates:
                     lat, lon = coordinates
-                    # Obtener información detallada desde OpenStreetMap
                     try:
                         osm_data = await self._get_location_details_from_osm(http_client, lat, lon)
                         
-                        # Obtener el estado/provincia de la respuesta
                         address = osm_data.get('address', {})
                         
-                        # Buscar el campo más específico disponible (en orden de prioridad)
-                        # subdivision: usado en Francia (Lapurdi, etc.)
-                        # province: usado en España (Bizkaia, Gipuzkoa, etc.)
-                        # county: condado, puede ser Pyrénées-Atlantiques
-                        # state: estado/región (muy general, último recurso)
                         subdivision = address.get('subdivision', '')
                         province = address.get('province', '')
                         county = address.get('county', '')
                         state = address.get('state', '')
                         
-                        # Usar el primer campo disponible (más específico primero)
                         location_to_check = subdivision or province or county or state
                         
-                        # Debug: imprimir lo que devuelve OSM
-                        print(f"DEBUG - OSM Address: {address}")
-                        print(f"DEBUG - Subdivision: '{subdivision}', Province: '{province}', County: '{county}', State: '{state}'")
-                        print(f"DEBUG - Usando para validación: '{location_to_check}'")
-                        
-                        # Validar si el territorio cumple la filosofía
                         is_birth_valid, territory = self._validate_territory(location_to_check)
-                        
-                        print(f"DEBUG - Validación: is_birth_valid={is_birth_valid}, territory={territory}")
                         
                         if is_birth_valid:
                             status = "valid"
@@ -608,55 +527,35 @@ class PhilosophyService:
                 else:
                     validation_reason = "No se encontraron coordenadas para validar el lugar de nacimiento"
                 
-                # Extraer clubes del jugador (siempre, para incluirlos en la respuesta)
-                print(f"DEBUG - Extrayendo clubes del jugador...")
                 teams = await self._extract_teams(entity)
-                print(f"DEBUG - Clubes encontrados: {len(teams)}")
                 
-                # Si no cumple por nacimiento, verificar formación en club vasco
                 if status != "valid":
-                    print(f"DEBUG - Jugador no nació en territorio válido, verificando clubes...")
-                    
-                    # Verificar si hay clubes antes de los 18 años
                     has_youth_clubs = False
-                    doubt_clubs = []  # Clubes con edad 17 (dudosos)
+                    doubt_clubs = []
                     
-                    # Verificar cada club
                     for team_info in teams:
                         club_id = team_info['id']
                         start_date = team_info['start_date']
                         
-                        print(f"DEBUG - Verificando club {club_id}, inicio: {start_date}")
-                        
-                        # Si no hay fecha de inicio, no podemos validar la edad
                         if not start_date or birth_date == "Desconocido":
                             continue
                         
-                        # Calcular edad cuando entró al club
                         age_at_start = self._calculate_age_at_date(birth_date, start_date)
-                        
-                        print(f"DEBUG - Edad al entrar al club: {age_at_start}")
                         
                         if age_at_start is None:
                             continue
                         
-                        # Registrar que hay clubes antes de los 18
                         if age_at_start < 18:
                             has_youth_clubs = True
                         
-                        # Verificar si el club está en territorio válido
                         club_is_valid, club_territory, club_name = await self._check_club_location(http_client, club_id)
                         
-                        print(f"DEBUG - Club: {club_name}, en territorio válido: {club_is_valid}, territorio: {club_territory}, edad: {age_at_start}")
-                        
-                        # Si llegó con 16 años o menos, es válido
                         if age_at_start <= 16 and club_is_valid:
                             status = "valid"
                             territory = club_territory
                             validation_reason = f"Formación en club vasco: llegó a {club_name} ({club_territory}) con {age_at_start} años"
                             break
                         
-                        # Si llegó con 17 años y es fecha parcial, es duda (pudo entrar con 16)
                         elif age_at_start == 17 and club_is_valid:
                             if start_date.endswith('-00-00') or start_date.endswith('-00'):
                                 doubt_clubs.append({
@@ -665,29 +564,22 @@ class PhilosophyService:
                                     'age': age_at_start
                                 })
                     
-                    # Si no cumple definitivamente, revisar si hay dudas
                     if status != "valid":
-                        # Caso 1: Clubes con 17 años en territorio vasco (pudo entrar con 16)
                         if doubt_clubs:
                             status = "doubt"
                             club_info = doubt_clubs[0]
                             validation_reason = f"Duda: llegó a {club_info['name']} ({club_info['territory']}) con aproximadamente {club_info['age']} años. Pudo haber entrado con 16 años pero falta información precisa (solo año disponible)"
                         
-                        # Caso 2: No hay clubes registrados antes de los 18 años
                         elif not has_youth_clubs:
                             status = "doubt"
                             validation_reason = "Duda: no hay clubes registrados antes de los 18 años. Falta información sobre clubes de formación (cadete, juvenil, etc.)"
                         
-                        # Caso 3: No cumple definitivamente
                         else:
                             status = "invalid"
                             if not validation_reason or validation_reason == "No se pudo validar":
                                 validation_reason = "No cumple la filosofía: no nació en territorio válido ni se formó en club vasco antes de los 16 años"
 
-                # Calcular clubes y temporadas
-                print(f"DEBUG - Calculando clubes y temporadas...")
                 clubs_seasons = await self._calculate_clubs_seasons(teams)
-                print(f"DEBUG - Clubes procesados: {len(clubs_seasons)} clubes únicos")
                 
                 # Crear objeto Player
                 player = Player(
@@ -705,23 +597,18 @@ class PhilosophyService:
                     reason=validation_reason
                 )
                 
-                # Guardar en caché (expira en 24 horas)
                 if redis_client.is_connected:
                     try:
                         redis_client.set(
                             cache_key,
                             result.dict(),
-                            ttl=86400  # 24 horas
+                            ttl=86400
                         )
-                        print(f"DEBUG - Resultado guardado en caché para {player_id}")
                     except Exception as cache_error:
-                        print(f"DEBUG - Error guardando en caché: {cache_error}")
+                        pass
                 
                 return result
         except Exception as e:
-            import traceback
-            print(f"ERROR - Error en validate_philosophy_by_id para player {player_id}: {type(e).__name__}: {str(e)}")
-            print(f"Traceback: {traceback.format_exc()}")
             raise
     
     async def validate_philosophy(
@@ -748,12 +635,10 @@ class PhilosophyService:
         """
         from app.core.redis_client import redis_client
         
-        # Intentar obtener del caché
         cache_key = f"player_search:{player_name.lower()}"
         if redis_client.is_connected:
             cached_result = redis_client.get(cache_key)
             if cached_result:
-                print(f"DEBUG - Búsqueda obtenida del caché para '{player_name}'")
                 return PlayerSearchResponse(**cached_result)
         
         loop = asyncio.get_event_loop()
@@ -866,17 +751,15 @@ class PhilosophyService:
             results=all_results
         )
         
-        # Guardar en caché (expira en 1 hora)
         if redis_client.is_connected:
             try:
                 redis_client.set(
                     cache_key,
                     response.dict(),
-                    ttl=3600  # 1 hora
+                    ttl=3600
                 )
-                print(f"DEBUG - Búsqueda guardada en caché para '{player_name}'")
             except Exception as cache_error:
-                print(f"DEBUG - Error guardando búsqueda en caché: {cache_error}")
+                pass
         
         return response
     
