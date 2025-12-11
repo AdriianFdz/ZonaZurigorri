@@ -19,7 +19,7 @@ def get_current_user(authorization: Optional[str] = Header(None)) -> str:
         # Decodificar el JWT (usa el mismo secret que auth-service)
         payload = jwt.decode(
             token,
-            "NS8st&2/baNS82LLAKS82KMS92M1L$%&S21&%$2WCN239Y2R39CN9QN8SRNC8OACFEWC2ZBIVCDSIAF7Q32R23",
+            settings.JWT_SECRET,
             algorithms=["HS256"]
         )
         user_id = payload.get("sub")
