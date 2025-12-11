@@ -216,7 +216,7 @@ export default function PrivacidadPage() {
                             </h2>
                             <p className="mb-3">
                                 Para ejercer tus derechos o hacer preguntas sobre esta política, contáctanos a través de
-                                los canales proporcionados en la aplicación.
+                                hello@adrianfer.tech.
                             </p>
                             <p>
                                 Si no estás satisfecho con nuestra respuesta, tienes derecho a presentar una reclamación
