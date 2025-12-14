@@ -17,6 +17,7 @@
         },
         "philosophy": {
             "title": "Our Philosophy",
+            "description": "Athletic Club is the only major European club that exclusively signs players from its territory.",
             "cantera": {
                 "title": "Youth Academy",
                 "description": "We train players from the base, committed to the club's values"
@@ -28,14 +29,35 @@
             "values": {
                 "title": "Values",
                 "description": "Respect, work and commitment define our style"
+            },
+            "cards": {
+                "euskalHerria": {
+                    "title": "Euskal Herria",
+                    "description": "Only players born or trained in the seven provinces of Euskal Herria: Bizkaia, Gipuzkoa, Araba, Nafarroa, Lapurdi, Zuberoa and Nafarroa Behera."
+                },
+                "cantera": {
+                    "title": "Own Youth Academy",
+                    "description": "We bet on training in our youth academy and in Euskal Herria clubs, developing local talent from the base."
+                },
+                "unique": {
+                    "title": "Unique Philosophy",
+                    "description": "The only elite European club that maintains a sports policy based exclusively on its territory and youth academy. Unique in the World."
+                }
             }
         },
         "palmares": {
             "title": "Honours",
+            "description": "Over a century of history with titles achieved while maintaining our unique philosophy.",
             "leagues": "Leagues",
             "cups": "Cups",
-            "superCups": "Super Cups"
+            "superCups": "Super Cups",
+            "leaguesDescription": "National championships",
+            "cupsDescription": "Second club with most titles",
+            "superCupsDescription": "Spanish Super Cup"
         }
+    },
+    "logo": {
+        "tagline": "From the people, for the fans"
     },
     "news": {
         "title": "Athletic News",

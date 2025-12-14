@@ -17,6 +17,7 @@
         },
         "philosophy": {
             "title": "Gure filosofia",
+            "description": "Athletic Club bere lurraldetik bakarrik jokalariak fitxatzen dituen Europako klub handi bakarra da.",
             "cantera": {
                 "title": "Haur-kantxak",
                 "description": "Jokalariak oinarritik hezten ditugu, klubaren balioekin konprometituak"
@@ -28,14 +29,35 @@
             "values": {
                 "title": "Balioak",
                 "description": "Errespetua, lana eta konpromisoa dira gure estiloa"
+            },
+            "cards": {
+                "euskalHerria": {
+                    "title": "Euskal Herria",
+                    "description": "Euskal Herriko zazpi probintzietan jaiotako edo trebatutako jokalariak soilik: Bizkaia, Gipuzkoa, Araba, Nafarroa, Lapurdi, Zuberoa eta Nafarroa Behera."
+                },
+                "cantera": {
+                    "title": "Kantera propioa",
+                    "description": "Gure kanteran eta Euskal Herriko klubetan prestatzeko apustua egiten dugu, tokiko talentua oinarritik garatuz."
+                },
+                "unique": {
+                    "title": "Filosofia bakarra",
+                    "description": "Bere lurralde eta kanteran oinarritutako kirol politika mantentzen duen Europako elite klubeko bakarra. Unique in the World."
+                }
             }
         },
         "palmares": {
             "title": "Palmares",
+            "description": "Mende bat baino gehiagoko historia gure filosofia bakarra mantenduz lortutako tituluekin.",
             "leagues": "Ligak",
             "cups": "Kopak",
-            "superCups": "Superkopak"
+            "superCups": "Superkopak",
+            "leaguesDescription": "Nazio txapelketak",
+            "cupsDescription": "Titulu gehien dituen bigarren kluba",
+            "superCupsDescription": "Espainiako Superkopa"
         }
+    },
+    "logo": {
+        "tagline": "Herritik, zaleentzat"
     },
     "news": {
         "title": "Athletic-en berriak",

@@ -17,6 +17,7 @@
         },
         "philosophy": {
             "title": "Nuestra Filosofía",
+            "description": "El Athletic Club es el único gran club europeo que solo ficha jugadores de su territorio.",
             "cantera": {
                 "title": "Cantera",
                 "description": "Formamos jugadores desde la base, comprometidos con los valores del club"
@@ -28,14 +29,35 @@
             "values": {
                 "title": "Valores",
                 "description": "Respeto, trabajo y compromiso definen nuestro estilo"
+            },
+            "cards": {
+                "euskalHerria": {
+                    "title": "Euskal Herria",
+                    "description": "Solo jugadores nacidos o formados en las siete provincias de Euskal Herria: Bizkaia, Gipuzkoa, Araba, Nafarroa, Lapurdi, Zuberoa y Nafarroa Behera."
+                },
+                "cantera": {
+                    "title": "Cantera Propia",
+                    "description": "Apostamos por la formación en nuestra cantera y en los clubes de Euskal Herria, desarrollando el talento local desde la base."
+                },
+                "unique": {
+                    "title": "Filosofía Única",
+                    "description": "El único club de élite europeo que mantiene una política deportiva basada exclusivamente en su territorio y cantera. Unique in the World."
+                }
             }
         },
         "palmares": {
             "title": "Palmarés",
+            "description": "Más de un siglo de historia con títulos conseguidos manteniendo nuestra filosofía única.",
             "leagues": "Ligas",
             "cups": "Copas",
-            "superCups": "Supercopas"
+            "superCups": "Supercopas",
+            "leaguesDescription": "Campeonatos nacionales",
+            "cupsDescription": "Segundo club con más títulos",
+            "superCupsDescription": "Supercopa de España"
         }
+    },
+    "logo": {
+        "tagline": "Desde el pueblo, para la afición"
     },
     "news": {
         "title": "Noticias del Athletic",
