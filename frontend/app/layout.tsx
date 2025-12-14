@@ -1,4 +1,5 @@
 import './globals.css'
+import 'flag-icons/css/flag-icons.min.css';
 import ClientLayout from '@/components/ClientLayout';
 import type { Metadata } from 'next';
 

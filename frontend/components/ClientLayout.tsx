@@ -4,29 +4,36 @@ import { useState, useEffect, ReactNode } from 'react';
 import Header from '@/components/Header';
 import Logo from '@/components/Logo';
 import { LocaleProvider } from '@/lib/i18n';
+import { DEFAULT_LOCALE, getAvailableLocales } from '@/lib/languages';
 
-// Importar traducciones
-import esTranslations from '@/messages/es.json';
-import enTranslations from '@/messages/en.json';
-
-const translations = {
-    es: esTranslations,
-    en: enTranslations,
+// Importación dinámica de traducciones
+const translations: Record<string, any> = {
+    es: require('@/messages/es.json'),
+    en: require('@/messages/en.json'),
+    eus: require('@/messages/eus.json'),
 };
 
 export default function ClientLayout({ children }: { children: ReactNode }) {
-    const [locale, setLocale] = useState('es');
+    const [locale, setLocale] = useState(DEFAULT_LOCALE);
 
     useEffect(() => {
-        // Obtener idioma guardado o del navegador
         const savedLocale = localStorage.getItem('preferred-locale');
         const browserLocale = navigator.language.split('-')[0];
-        const initialLocale = savedLocale || (browserLocale === 'en' ? 'en' : 'es');
+        const availableLocales = getAvailableLocales();
+
+        let initialLocale = DEFAULT_LOCALE;
+
+        if (savedLocale && availableLocales.includes(savedLocale)) {
+            initialLocale = savedLocale;
+        } else if (availableLocales.includes(browserLocale)) {
+            initialLocale = browserLocale;
+        }
+
         setLocale(initialLocale);
     }, []);
 
     return (
-        <LocaleProvider locale={locale} translations={translations[locale as keyof typeof translations]}>
+        <LocaleProvider locale={locale} translations={translations[locale] || translations[DEFAULT_LOCALE]}>
             <Header />
             {children}
             <footer className="text-white w-full bottom-0 bg-linear-to-r from-burdeos-dark via-burdeos-light to-burdeos-dark">
