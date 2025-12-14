@@ -1,0 +1,126 @@
+{
+    "nav": {
+        "home": "Hasiera",
+        "news": "Berriak",
+        "validator": "Balidatzailea",
+        "favorites": "Gogokoak",
+        "login": "Sartu",
+        "logout": "Irten"
+    },
+    "home": {
+        "hero": {
+            "title": "Athletic Club-en filosofia,",
+            "subtitle": "Zure espazioa Athletic Club-arekin lotutako guztirako",
+            "description": "Egiaztatu jokalariak, ezagutu etorkizunekoak eta eguneratuta egon Athletic Club-i buruz.",
+            "newsButton": "Ikusi berriak",
+            "validatorButton": "Balidatu jokalaria"
+        },
+        "philosophy": {
+            "title": "Gure filosofia",
+            "cantera": {
+                "title": "Haur-kantxak",
+                "description": "Jokalariak oinarritik hezten ditugu, klubaren balioekin konprometituak"
+            },
+            "basque": {
+                "title": "Euskal",
+                "description": "Gure nortasuna mantentzen dugu Euskal Herriko jokalariekin"
+            },
+            "values": {
+                "title": "Balioak",
+                "description": "Errespetua, lana eta konpromisoa dira gure estiloa"
+            }
+        },
+        "palmares": {
+            "title": "Palmares",
+            "leagues": "Ligak",
+            "cups": "Kopak",
+            "superCups": "Superkopak"
+        }
+    },
+    "news": {
+        "title": "Athletic-en berriak",
+        "subtitle": "Klubaren azken berriak El Correotik",
+        "loadMore": "Kargatu berriak gehiago",
+        "noNews": "Ez da berririk aurkitu",
+        "noMoreNews": "Ez dago berri gehiagorik",
+        "filterByDate": "Iragazi dataz",
+        "startDate": "Hasiera-data",
+        "endDate": "Amaiera-data",
+        "clearFilters": "Garbitu iragazkiak",
+        "loading": "Berriak kargatzen...",
+        "apply": "Aplikatu",
+        "readMore": "Irakurri gehiago",
+        "author": "Egilea",
+        "published": "Argitaratua"
+    },
+    "validator": {
+        "title": "Filosofiaren balidatzailea",
+        "subtitle": "Sartu jokalariaren izena Athletic Club-en filosofia betetzen duen egiaztatzeko",
+        "playerName": "Jokalariaren izena",
+        "placeholder": "Adib.: Iker Muniain, Iñaki Williams...",
+        "validating": "Jokalaria balidatzen...",
+        "noResults": "Ez da jokalaririk aurkitu",
+        "valid": "Athletic Club-en filosofia betetzen du",
+        "invalid": "Ez du Athletic Club-en filosofia betetzen",
+        "doubt": "Zalantza ea filosofia betetzen duen",
+        "birthPlace": "Jaioterria",
+        "birthDate": "Jaiotze-data",
+        "whyValid": "Zergatik betetzen du?",
+        "whyInvalid": "Zergatik ez du betetzen?",
+        "whyDoubt": "Zalantzarako arrazoia",
+        "career": "Klub ibilbidea",
+        "trajectory": "Klub ibilbidea",
+        "seasons": "denboraldi",
+        "season": "denboraldia",
+        "addToFavorites": "Gehitu gogokoetara",
+        "inFavorites": "Gogokoetan",
+        "saving": "Gordetzen...",
+        "loginToComment": "Saioa hasi behar duzu iruzkintzeko",
+        "loginToFavorite": "Saioa hasi behar duzu gogokoetara gehitzeko",
+        "years": "urte"
+    },
+    "favorites": {
+        "title": "Nire gogokoak",
+        "subtitle": "Kudeatu zure jokalari gogokoen zerrenda",
+        "noFavorites": "Oraindik ez daukazu gogokorik",
+        "emptyMessage": "Bilatu jokalariak balidatzailean eta gehitu gogokoetara hemen gordetzeko",
+        "goToValidator": "Joan balidatzailera",
+        "viewDetails": "Ikusi xehetasunak",
+        "remove": "Kendu",
+        "authRequired": "Autentifikazioa behar da",
+        "loginMessage": "Saioa hasi behar duzu zure gogokoen zerrendan sartzeko",
+        "oauthMessage": "Hasi saioa Google edo Discord bidez jokalari gogokoak gordetzeko eta kudeatzeko",
+        "continueWithGoogle": "Jarraitu Google-rekin",
+        "continueWithDiscord": "Jarraitu Discord-ekin",
+        "loading": "Gogokoak kargatzen..."
+    },
+    "comments": {
+        "title": "Iruzkinak",
+        "placeholder": "Idatzi zure iritzia jokalari honi buruz...",
+        "submit": "Iruzkindu",
+        "submitting": "Bidaltzen...",
+        "noComments": "Oraindik ez dago iruzkinik. Iruzkindu lehena!",
+        "loginRequired": "Saioa hasi behar duzu iruzkintzeko",
+        "delete": "Ezabatu iruzkina"
+    },
+    "login": {
+        "welcome": "Ongi etorri",
+        "subtitle": "Hasi saioa Zona Zurigorri-n",
+        "continueWithGoogle": "Jarraitu Google-rekin",
+        "continueWithDiscord": "Jarraitu Discord-ekin",
+        "authenticating": "Autentifikatzen...",
+        "termsPrefix": "Jarraituz, onartzen dituzu gure",
+        "terms": "Zerbitzu-baldintzak",
+        "and": "eta",
+        "privacy": "Pribatutasun politika"
+    },
+    "common": {
+        "loading": "Kargatzen...",
+        "error": "Errorea",
+        "save": "Gorde",
+        "cancel": "Utzi",
+        "delete": "Ezabatu",
+        "edit": "Editatu",
+        "search": "Bilatu"
+    }
+}
