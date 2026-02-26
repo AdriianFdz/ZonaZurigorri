@@ -6,7 +6,7 @@ Aplicación web para validar jugadores según la filosofía del Athletic Club de
 
 El proyecto está compuesto por:
 - **Frontend**: Next.js 15 con TypeScript
-- **Auth Service**: NestJS para autenticación OAuth (Google, Discord, Twitter)
+- **Auth Service**: NestJS para autenticación OAuth (Google, Discord)
 - **Main Logic Service**: FastAPI para lógica de negocio (validación de jugadores, noticias, comentarios)
 - **Kong Gateway**: API Gateway para enrutamiento
 - **PostgreSQL**: Base de datos
